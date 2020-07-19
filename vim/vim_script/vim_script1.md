@@ -4,7 +4,7 @@
 
 > 虽然网络上关于vim各种命令和快捷键的教程都很多，但是关于vim script的却很少。可能是因为大多数人都不用vim吧，就算用也只是在ssh远程登录时用一下。所以我就决定认真读一下vim script的英文文档，写一点笔记，就当练英语了，也可以为其他vim爱好者提供一些帮助。
 
-> 英文文档可以通过vim在normal模式下输入`:help vim-script-intro`看到。我的这一系列文档将会在github和博客园进行连载，欢迎给star。https://www.github.com/xiaoqixian/Linux.git/vim/vim_script
+> 英文文档可以通过vim在normal模式下输入`:help vim-script-intro`看到。我的这一系列文档将会在github和博客园进行连载，欢迎给star。https://www.github.com/xiaoqixian/Linux/vim/vim_script
 
 #### **变量定义**
 
