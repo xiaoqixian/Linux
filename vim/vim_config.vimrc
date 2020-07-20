@@ -10,6 +10,8 @@ call vundle#begin()
 Plugin 'VundleVim/Vundle.vim'
 Plugin 'scrooloose/nerdtree'
 Plugin 'Valloric/YouCompleteMe'
+Plugin 'Lokaltog/vim-powerline'
+Plugin 'jiangmiao/auto-pairs'
 
 call vundle#end()
 filetype plugin indent on
@@ -342,17 +344,34 @@ endfunction
 
 set number
 
-inoremap ' ''<ESC>i
-inoremap " ""<ESC>i
-inoremap ( ()<ESC>i
-inoremap [ []<ESC>i
-inoremap { {<CR>}<ESC>O
+"inoremap ' ''<ESC>i
+"inoremap " ""<ESC>i
+"inoremap ( ()<ESC>i
+"inoremap [ []<ESC>i
+""inoremap { {<CR>}<ESC>O
+"inoremap { {}<Esc>i
 
+"映射全选
+map <C-A> ggVGY
+map! <C-A> ggVGY
+
+function! SetCR()
+    let l:line = getline(".")
+    let l:cur_char = l:line[col(".")]
+    
+    if l:cur_char == "}"
+        execute "normal \<CR>\<ESC>O"
+    else
+        execute "normal \<End>\<ESC>"
+    endif
+endfunction
+
+""inoremap <CR> <ESC>:call SetCR()
 
 " 按退格键时判断当前光标前一个字符，如果是左括号，则删除对应的右括号以及括号中间的内容
 function! RemovePairs()
 	let l:line = getline(".")
-	let l:previous_char = l:line[col(".")-1] " 取得当前光标前一个字符
+	let l:previous_char = l:line[col(".")-1] " 取得当前光标前一个字符,col()函数可以获得当前的列数
 
 	if index(["(", "[", "{"], l:previous_char) != -1
 		let l:original_pos = getpos(".")
@@ -399,7 +418,7 @@ inoremap } <ESC>:call RemoveNextDoubleChar('}')<CR>a
 :inoremap <S-CR> <END><CR>
 
 " Key map
-:nmap <S-Space> <PageDown>
+":nmap <S-Space> <PageDown>
 
 "********************************************************
 "						新文件标题
@@ -444,6 +463,25 @@ endfunc
 "新建文件后，自动定位到文件末尾
 autocmd BufNewFile * normal G
 
+
+"************************************************
+"               YCM配置
+"************************************************
+"让vim的补全菜单行为与一般IDE一致
+set completeopt=longest,menu
+
+"离开插入模式后自动关闭预览窗口
+autocmd InsertLeave * if pumvisible() == 0|pclose|endif
+
+"在注释输入中也能补全
+let g:ycm_complete_in_comments = 1
+"在字符串输入中也能补全
+let g:ycm_complete_in_strings = 1
+"从注释和字符串中收入补全
+let g:ycm_collect_identifiers_from_comments_and_strings = 1
+
+
+
 """"""""""NERDTree Configuration""""""""""
 ""autocmd vimenter * NERDTree
 map <F3> :NERDTreeMirror<CR>
@@ -454,3 +492,27 @@ let NERDTreeMouseMode=2
 let NERDTreeShowHidden=1
 "两边的窗口跳转快捷键 ctrl+w+w"
 map <F4> <C-W>w
+"只剩NERDTree时自动关闭
+autocmd bufenter * if (winnr("$") == 1 && exists("b:NERDTreeType") && b:NERDTreeType == "primary") | q | endif
+
+"********************************************************
+ "          c,c++,java,shell 按<F5>编译运行                  
+ "********************************************************
+map <F5> :call CompileRunGcc()<CR>
+func! CompileRunGcc()
+    exec "w" 
+    if &filetype == 'c' 
+        exec "!gcc % -o %<"
+        exec "! ./%<"
+    elseif &filetype == 'cpp'
+        exec "!g++ % -o %<"
+        exec "! ./%<"
+    elseif &filetype == 'java'
+        exec "!javac %"
+        exec "!java %<"
+    elseif &filetype == 'sh'
+        :!./%<
+    endif
+endfunc
+ 
+
