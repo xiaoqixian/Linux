@@ -80,6 +80,7 @@ setline():讲某一行通过某个字符串代替。
          :  return smaller
          :endfunction
 ```
+当函数没有return或没有return任何东西时，函数实际return一个0
 
 **函数的重定义**
 如果要重定义一个已经存在的函数，则必须可以在通过`:functio!`来定义函数
@@ -87,4 +88,65 @@ setline():讲某一行通过某个字符串代替。
 定义好的函数可以如同内置函数一样被调用。
 
 **call调用**
+`call`命令同样可以用于调用函数，与直接调用不同的是call命令可以更加精确。比如call命令可以range调用。
+
+什么意思呢？如果你在定义函数时使用了range关键字：
+```shell
+
+         :function Count_words() range
+         :  let lnum = a:firstline
+         :  let n = 0
+         :  while lnum <= a:lastline
+         :    let n = n + len(split(getline(lnum)))
+         :    let lnum = lnum + 1
+         :  endwhile
+         :  echo "found " . n . " words"
+         :endfunction
+```
+且在调用时传入了行数范围：`:10,30call Count_words()`，则vim会将行数10传入到firstline参数中，将30传入到lastline参数中，供函数使用。
+
+如果你在定义函数时没有使用`range`关键字，并且在调用时使用行数范围，则该函数会在行数范围的每一行内执行一次。
+
+**可选参数**
+vim script设置可选参数的格式为：
+```shell
+:function Show(start, ...)
+```
+"..."是函数的一部分，不表示省略。上面的函数中，函数有一个必选参数start，和最多不超过20个的可选参数。可选参数通过数字来引用，比如`a:1`就表示第一个输入的可选参数，以此类推。
+**`a:0`表示可选参数的数量**。
+
+通过命令`:function`可以查看所有已经定义的函数名。如果要查看某个函数的具体定义，可以通过`function 函数名`命令进行查看。
+
+**删除函数**
+删除函数定义的命令：`:delfunction Show`
+
+**函数引用**
+vim script允许将函数如同变量一样被传递。格式为：
+```shell
+:let variable = function('function name')
+```
+通过`function()`函数就可以达到这一目的。
+```shell
+
+         :let result = 0         " or 1
+         :function! Right()
+         :  return 'Right!'
+         :endfunc
+         :function! Wrong()
+         :  return 'Wrong!'
+         :endfunc
+         :
+         :if result == 1
+         :  let Afunc = function('Right')
+         :else
+         :  let Afunc = function('Wrong')
+         :endif
+         :echo call(Afunc, [])
+         Wrong!
+```
+**注意：引用函数的变量名必须以大写字母开头，否则名字将于内置函数名可能混淆。**
+
+调用引用函数的方法就是通过`call()`函数，注意这里是函数，而不是命令，与前面的相区分。call函数的第一个参数就引用变量，第二个参数一个带有参数的列表。
+
+> 函数终于写完了...
 
