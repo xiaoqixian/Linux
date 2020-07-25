@@ -414,7 +414,7 @@ inoremap ) <ESC>:call RemoveNextDoubleChar(')')<CR>a
 inoremap ] <ESC>:call RemoveNextDoubleChar(']')<CR>a
 inoremap } <ESC>:call RemoveNextDoubleChar('}')<CR>a
 
-:inoremap <CR> <END><CR>
+":inoremap <CR> <END><CR>
 :inoremap <S-CR> <END><CR>
 
 " Key map
@@ -480,7 +480,7 @@ let g:ycm_complete_in_strings = 1
 "从注释和字符串中收入补全
 let g:ycm_collect_identifiers_from_comments_and_strings = 1
 
-
+let g:ycm_global_ycm_extra_conf= '~/.vim/bundle/YouCompleteMe/.ycm_extra_conf.py'
 
 """"""""""NERDTree Configuration""""""""""
 ""autocmd vimenter * NERDTree
@@ -515,4 +515,19 @@ func! CompileRunGcc()
     endif
 endfunc
  
+"--- 跨终端粘贴
+let g:copy_file=$HOME . "/.vim_copybuffer"
+function Write_copy_file()
+"本函数将 @" 缓冲区内容写入文件
+let lines=split(@", "\n")
+call writefile(lines,g:copy_file)
+endfunction
 
+function Read_copy_file()
+"将copy_file文件写入@" 缓冲区，并且粘贴
+let l:buf=readfile(g:copy_file)
+let @"=join(l:buf,"\n")
+normal ""p
+endfunction
+nmap <silent> ;y :call Write_copy_file()<Enter>
+nmap <silent> ;p :call Read_copy_file()<Enter>
