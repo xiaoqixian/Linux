@@ -10,19 +10,8 @@
 
 2.  这个工具具有将命令行输出复制到剪切板的功能，利用这个功能，再编写一下vimrc文件不就可以达到复制到剪切板的功能了吗？
 
-3.  在vimrc文件中编写下面这个函数：
+3.  在vim下测试一下这个工具，通过visual模式选中一部分内容后按`y`复制到`"`寄存器，然后输入`:call system("xclip -selection c, @")` 就会发现`"`寄存器中的内容已经复制到剪切板中了。
 
-    ```shell
-    fun! Visual_paste()
-    	execute y
-    	call system("xclip -selection c", @")
-    endfunction
-    ```
+4.  但是我们不可能每次复制的时候都输入这段命令，很麻烦，所以映射一下：`vnoremap <leader>y y:call system("xclip -selection c", @")<CR>`。
 
-    这个函数的基本功能就是先执行`y`命令复制选中的内容到`"`寄存器中，然后执行系统命令将`"` 寄存器中的内容复制到剪切板中。
-
-4.  最后我们再写一个map映射一下这个函数
-
-    我的映射是 `vnoremap <leader>y:call visual_paste()`
-
-    这样在visual模式下选中后按 `,`+`y` 复制选中内容到剪切板中，懂vim的同学也可以自定义映射。
+    这样，每次在visual模式下选中后直接 `,` + `y` 就可以复制到剪切板中，非常方便。
