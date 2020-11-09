@@ -13,10 +13,10 @@
 3.  在vimrc文件中编写下面这个函数：
 
     ```shell
-    fun! visual_paste()
+    fun! Visual_paste()
     	execute y
     	call system("xclip -selection c", @")
-    endfun
+    endfunction
     ```
 
     这个函数的基本功能就是先执行`y`命令复制选中的内容到`"`寄存器中，然后执行系统命令将`"` 寄存器中的内容复制到剪切板中。
