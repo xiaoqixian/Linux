@@ -12,13 +12,15 @@ Plugin 'scrooloose/nerdtree'
 Plugin 'Valloric/YouCompleteMe'
 Plugin 'Lokaltog/vim-powerline'
 Plugin 'jiangmiao/auto-pairs'
+Plugin 'tpope/vim-surround'
+Plugin 'gcmt/wildfire.vim'
 
 call vundle#end()
 filetype plugin indent on
 
 """"""""""""""""""""""""""""""""""""""""""""""""""""
 
-set number
+set relativenumber
 
 set history=500
 
@@ -156,7 +158,12 @@ set wrap "Wrap lines
 " Super useful! From an idea by Michael Naumann
 vnoremap <silent> * :<C-u>call VisualSelection('', '')<CR>/<C-R>=@/<CR><CR>
 vnoremap <silent> # :<C-u>call VisualSelection('', '')<CR>?<C-R>=@/<CR><CR>
-
+fun! Visual_paste()
+    execute "y"
+    call system("echo", @")
+    "call system("xclip -selection c", @")
+endfunction
+vnoremap <leader>y y:call system("xclip -selection c", @")<CR>
 
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 " => Moving around, tabs, windows and buffers
@@ -167,9 +174,6 @@ vnoremap <silent> # :<C-u>call VisualSelection('', '')<CR>?<C-R>=@/<CR><CR>
 " Disable highlight when <leader><cr> is pressed
 map <silent> <leader><cr> :noh<cr>
 
-autocmd vimenter * NERDTree
-map <F3> :NERDTreeMirror<CR>
-map <F3> :NERDTreeToggle<CR>
 
 " Smart way to move between windows
 map <C-j> <C-W>j
@@ -187,11 +191,12 @@ map <leader>l :bnext<cr>
 map <leader>h :bprevious<cr>
 
 " Useful mappings for managing tabs
-map <leader>tn :tabnew<cr>
+map <leader>tn :tabnext<cr>
 map <leader>to :tabonly<cr>
 map <leader>tc :tabclose<cr>
 map <leader>tm :tabmove
-map <leader>t<leader> :tabnext
+map <leader>t<leader> :tabnew
+map <leader>tp :tabp<cr>
 
 " Let 'tl' toggle between this and the last accessed tab
 let g:lasttab = 1
@@ -230,8 +235,8 @@ set statusline=\ %{HasPaste()}%F%m%r%h\ %w\ \ CWD:\ %r%{getcwd()}%h\ \ \ Line:\ 
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 " => Editing mappings
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-" Remap VIM 0 to first non-blank character
-map 0 ^
+" Remap VIM -1 to first non-blank character
+map -1 ^
 
 " Move a line of text using ALT+[jk] or Command+[jk] on mac
 nmap <M-j> mz:m+<cr>`z
@@ -413,6 +418,7 @@ endfunction
 inoremap ) <ESC>:call RemoveNextDoubleChar(')')<CR>a
 inoremap ] <ESC>:call RemoveNextDoubleChar(']')<CR>a
 inoremap } <ESC>:call RemoveNextDoubleChar('}')<CR>a
+inoremap jj <ESC>
 
 ":inoremap <CR> <END><CR>
 :inoremap <S-CR> <END><CR>
@@ -423,27 +429,37 @@ inoremap } <ESC>:call RemoveNextDoubleChar('}')<CR>a
 "********************************************************
 "						新文件标题
 "********************************************************
-"新建.c,.h,.sh,自动插入文件头
-autocmd BufNewFile *.[ch],*.cpp,*.sh,*.py,*.java exec ":call SetTitle()"
+"新建.c,.h,.sh,.py,.java,.md,自动插入文件头
+autocmd BufNewFile *.[ch],*.cpp,*.sh,*.py,*.java,*.md exec ":call SetTitle()"
 func SetTitle()
 	if &filetype == 'sh'
 		call setline(1,"\#!/bin/bash")
 		call append(line("."), "")
     endif
     if expand("%:e") == 'py'
-        call setline(1, "# !/usr/bin/env python3")
+        call setline(1, "# !/usr/bin/python3")
         call setline(2, "# -*- coding: utf-8 -*-")
-        call setline(3, "# > Author     : lunar")
+        call setline(3, "# > Author      : lunar")
         call setline(4, "# > Email       : lunar_ubuntu@qq.com")
-        call setline(5, "# > Create Time: ".strftime("%c")) 
+        call setline(5, "# > Created Time: ".strftime("%c")) 
+        call setline(6, "# > Location    : Shanghai")
+    "在markdown文件中加入yaml头部
+    elseif expand("%:e") == 'md'
+        call setline(1, "---")
+        call setline(2, "author: lunar")
+        call setline(3, "date: ".strftime("%c"))
+        call setline(4, "location: Shanghai")
+        call setline(5, "---")
+        call setline(6, "")
 	else
 		call setline(1,"/**********************************************")
 		call append(line("."),   "  > File Name		: ".expand("%"))
-		call append(line(".")+1, "  > Author			: lunar")
+		call append(line(".")+1, "  > Author		    : lunar")
 		call append(line(".")+2, "  > Email			: lunar_ubuntu@qq.com")
 		call append(line(".")+3, "  > Created Time	: ".strftime("%c"))
-		call append(line(".")+4, " ************************************************/")
-		call append(line(".")+5, "")
+        call append(line(".")+4, "  > Location        : Shanghai")
+		call append(line(".")+5, " **********************************************/")
+		call append(line(".")+6, "")
 	endif
 	if expand("%:e") == 'cpp'
 		call append(line(".")+6, "#include <iostream>")
@@ -457,6 +473,11 @@ func SetTitle()
 	if expand("%:e") == 'h'
 		call append(line(".")+6, "#ifndef _".toupper(expand("%:r"))."_H")
 		call append(line(".")+7, "#define _".toupper(expand("%:r"))."_H")
+		call append(line(".")+8, "")
+    endif
+    if expand("%:e") == 'hpp'
+        call append(line(".")+6, "#ifndef ".toupper(expand("%:r"))."_HPP")
+        call append(line(".")+7, "#define _".toupper(expand("%:r"))."_HPP")
 		call append(line(".")+8, "")
     endif
 endfunc
@@ -491,7 +512,7 @@ let NERDTreeMouseMode=2
 "语法高亮显示当前文件或目录"
 let NERDTreeShowHidden=1
 "两边的窗口跳转快捷键 ctrl+w+w"
-map <F4> <C-W>w
+map <space> <C-W>w
 "只剩NERDTree时自动关闭
 autocmd bufenter * if (winnr("$") == 1 && exists("b:NERDTreeType") && b:NERDTreeType == "primary") | q | endif
 
@@ -512,6 +533,8 @@ func! CompileRunGcc()
         exec "!java %<"
     elseif &filetype == 'sh'
         :!./%<
+    elseif &filetype == 'py'
+        exec "!python %"
     endif
 endfunc
  

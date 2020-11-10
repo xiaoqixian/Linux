@@ -9,7 +9,7 @@ date: Fri 23 Oct 2020 07:44:36 PM CST
 
 效果如下：
 
-![image-20201023194912353](https://raw.githubusercontent.com/xiaoqixian/Tiara/master/img/image-20201023194912353.png)
+![image-20201106141040935](https://i.loli.net/2020/11/06/jBFCIa3v5serh8T.png)
 
 NightSakura.css文件如下：
 ```css
