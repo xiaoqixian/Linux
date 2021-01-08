@@ -30,3 +30,11 @@ date: Fri 18 Sep 2020 07:32:20 PM CST
 ### 正式启动
 
 找到下载路径的bin目录下，输入`./matlab`运行，推荐把图标pin在桌面上。
+
+### 第一次更新
+
+2020年11月29日，在一次更新内核之后，我的MATLAB突然变得难以使用。只好卸载重装，但是按照原来的方式已经无法成功安装了，同意报出了"can't launch MATLABWindow Application"的错误。且无法通过安装libselinux包进行解决。感觉这个和我的MATLAB不好用应该有直接的联系。
+
+又查阅一番资料后发现在mathworks论坛有中文选手给出不运行install脚本，而是直接运行bin/glnxa64目录下的install_unix_legacy脚本，尝试之后果然可以成功安装。
+
+虽然好像还是不是很好用，总是提示已通过改用OpenGL软件禁用了某些高级的图形渲染功能。

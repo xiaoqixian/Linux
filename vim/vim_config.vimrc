@@ -20,8 +20,13 @@ filetype plugin indent on
 
 """"""""""""""""""""""""""""""""""""""""""""""""""""
 
-set relativenumber
+"set colorscheme
+"colorscheme dracula
+"set background=dark
+"hi Normal ctermbg=252 ctermbg=none
+"设置背景透明
 
+set relativenumber
 set history=500
 
 filetype plugin on
@@ -113,6 +118,12 @@ set foldcolumn=1
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 " => Colors and Fonts
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+"YouCompleteMe color set
+"highlight PMenu ctermfg=#D8547B ctermbg=#3A506B
+highlight PMenu ctermfg=225 ctermbg=60 guifg=black guibg=darkgrey
+highlight PMenuSel ctermfg=242 ctermbg=8 guifg=darkgrey guibg=black
+highlight Comment ctermfg=103 ctermbg=none
+
 " syntax highlighting
 syntax enable
 
@@ -169,7 +180,7 @@ vnoremap <leader>y y:call system("xclip -selection c", @")<CR>
 " => Moving around, tabs, windows and buffers
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 " Map <Space> to / (search) and Ctrl-<Space> to ? (backwards search)
-:inoremap <C-CR> <END><CR>
+inoremap <C-P> <END><CR>
 
 " Disable highlight when <leader><cr> is pressed
 map <silent> <leader><cr> :noh<cr>
@@ -357,8 +368,8 @@ set number
 "inoremap { {}<Esc>i
 
 "映射全选
-map <C-A> ggVGY
-map! <C-A> ggVGY
+map <C-A> ggVG
+map! <C-A> ggVG
 
 function! SetCR()
     let l:line = getline(".")
@@ -421,7 +432,7 @@ inoremap } <ESC>:call RemoveNextDoubleChar('}')<CR>a
 inoremap jj <ESC>
 
 ":inoremap <CR> <END><CR>
-:inoremap <S-CR> <END><CR>
+"inoremap <CR> <END><CR>
 
 " Key map
 ":nmap <S-Space> <PageDown>
@@ -443,6 +454,8 @@ func SetTitle()
         call setline(4, "# > Email       : lunar_ubuntu@qq.com")
         call setline(5, "# > Created Time: ".strftime("%c")) 
         call setline(6, "# > Location    : Shanghai")
+        call setline(7, "# > Copyright @ https://github.com/xiaoqixian")
+        call setline(8, "")
     "在markdown文件中加入yaml头部
     elseif expand("%:e") == 'md'
         call setline(1, "---")
@@ -458,27 +471,30 @@ func SetTitle()
 		call append(line(".")+2, "  > Email			: lunar_ubuntu@qq.com")
 		call append(line(".")+3, "  > Created Time	: ".strftime("%c"))
         call append(line(".")+4, "  > Location        : Shanghai")
-		call append(line(".")+5, " **********************************************/")
-		call append(line(".")+6, "")
-	endif
-	if expand("%:e") == 'cpp'
-		call append(line(".")+6, "#include <iostream>")
-		call append(line(".")+7, "using namespace std;")
-		call append(line(".")+8, "")
-	endif
-	if &filetype == 'c'
-		call append(line(".")+6, "#include <stdio.h>")
+        call append(line(".")+5, "  > Copyright @ https://github.com/xiaoqixian")
+		call append(line(".")+6, " **********************************************/")
 		call append(line(".")+7, "")
 	endif
+	if expand("%:e") == 'cpp'
+		call append(line(".")+9, "#include <iostream>")
+		call append(line(".")+10, "using namespace std;")
+		call append(line(".")+11, "")
+	endif
 	if expand("%:e") == 'h'
-		call append(line(".")+6, "#ifndef _".toupper(expand("%:r"))."_H")
-		call append(line(".")+7, "#define _".toupper(expand("%:r"))."_H")
-		call append(line(".")+8, "")
+		"call append(line(".")+9, "#ifndef _".toupper(expand("%:r"))."_H")
+		"call append(line(".")+10, "#define _".toupper(expand("%:r"))."_H")
+		"call append(line(".")+11, "")
+        call setline(9, "#ifndef _".toupper(expand("%:r"))."_H")
+        call setline(10, "#define _".toupper(expand("%:r"))."_H")
+        call setline(11, "")
+        call setline(12, "")
+        call setline(13, "")
+        call setline(14, "#endif /* _".toupper(expand("%:r"))."_H*/")
     endif
     if expand("%:e") == 'hpp'
-        call append(line(".")+6, "#ifndef ".toupper(expand("%:r"))."_HPP")
-        call append(line(".")+7, "#define _".toupper(expand("%:r"))."_HPP")
-		call append(line(".")+8, "")
+        call append(line(".")+9, "#ifndef ".toupper(expand("%:r"))."_HPP")
+        call append(line(".")+10, "#define _".toupper(expand("%:r"))."_HPP")
+		call append(line(".")+11, "")
     endif
 endfunc
 "新建文件后，自动定位到文件末尾
@@ -505,8 +521,8 @@ let g:ycm_global_ycm_extra_conf= '~/.vim/bundle/YouCompleteMe/.ycm_extra_conf.py
 
 """"""""""NERDTree Configuration""""""""""
 ""autocmd vimenter * NERDTree
-map <F3> :NERDTreeMirror<CR>
-map <F3> :NERDTreeToggle<CR>
+map <C-X> :NERDTreeMirror<CR>
+map <C-X> :NERDTreeToggle<CR>
 "鼠标模式：目录单击，文件双击"
 let NERDTreeMouseMode=2
 "语法高亮显示当前文件或目录"
