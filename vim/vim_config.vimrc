@@ -9,11 +9,16 @@ call vundle#begin()
 ""let Vundle manage Vundle, required
 Plugin 'VundleVim/Vundle.vim'
 Plugin 'scrooloose/nerdtree'
-Plugin 'Valloric/YouCompleteMe'
 Plugin 'Lokaltog/vim-powerline'
+Plugin 'Valloric/YouCompleteMe'
 Plugin 'jiangmiao/auto-pairs'
 Plugin 'tpope/vim-surround'
 Plugin 'gcmt/wildfire.vim'
+Plugin 'preservim/nerdcommenter'
+Plugin 'kristijanhusak/vim-carbon-now-sh'
+Plugin 'lervag/vimtex'
+"Plugin 'zhiyuanlck/vim-float-terminal'
+Plugin 'voldikss/vim-floaterm'
 
 call vundle#end()
 filetype plugin indent on
@@ -122,7 +127,7 @@ set foldcolumn=1
 "highlight PMenu ctermfg=#D8547B ctermbg=#3A506B
 highlight PMenu ctermfg=225 ctermbg=60 guifg=black guibg=darkgrey
 highlight PMenuSel ctermfg=242 ctermbg=8 guifg=darkgrey guibg=black
-highlight Comment ctermfg=103 ctermbg=none
+highlight Comment ctermfg=104 ctermbg=none
 
 " syntax highlighting
 syntax enable
@@ -441,20 +446,19 @@ inoremap jj <ESC>
 "						新文件标题
 "********************************************************
 "新建.c,.h,.sh,.py,.java,.md,自动插入文件头
-autocmd BufNewFile *.[ch],*.cpp,*.sh,*.py,*.java,*.md exec ":call SetTitle()"
+autocmd BufNewFile *.[ch],*.cpp,*.sh,*.py,*.java,*.md,*.rs exec ":call SetTitle()"
 func SetTitle()
-	if &filetype == 'sh'
+	if expand("%:e") == 'sh'
 		call setline(1,"\#!/bin/bash")
 		call append(line("."), "")
-    endif
-    if expand("%:e") == 'py'
+    elseif expand("%:e") == 'py'
         call setline(1, "# !/usr/bin/python3")
         call setline(2, "# -*- coding: utf-8 -*-")
-        call setline(3, "# > Author      : lunar")
-        call setline(4, "# > Email       : lunar_ubuntu@qq.com")
-        call setline(5, "# > Created Time: ".strftime("%c")) 
-        call setline(6, "# > Location    : Shanghai")
-        call setline(7, "# > Copyright @ https://github.com/xiaoqixian")
+        call setline(3, "# > Author          : lunar")
+        call setline(4, "# > Email           : lunar_ubuntu@qq.com")
+        call setline(5, "# > Created Time    : ".strftime("%c")) 
+        call setline(6, "# > Location        : Shanghai")
+        call setline(7, "# > Copyright@ https://github.com/xiaoqixian")
         call setline(8, "")
     "在markdown文件中加入yaml头部
     elseif expand("%:e") == 'md'
@@ -471,7 +475,7 @@ func SetTitle()
 		call append(line(".")+2, "  > Email			: lunar_ubuntu@qq.com")
 		call append(line(".")+3, "  > Created Time	: ".strftime("%c"))
         call append(line(".")+4, "  > Location        : Shanghai")
-        call append(line(".")+5, "  > Copyright @ https://github.com/xiaoqixian")
+        call append(line(".")+5, "  > Copyright@ https://github.com/xiaoqixian")
 		call append(line(".")+6, " **********************************************/")
 		call append(line(".")+7, "")
 	endif
@@ -516,6 +520,8 @@ let g:ycm_complete_in_comments = 1
 let g:ycm_complete_in_strings = 1
 "从注释和字符串中收入补全
 let g:ycm_collect_identifiers_from_comments_and_strings = 1
+"取消代码诊断
+let g:ycm_show_diagnostics_ui = 0
 
 let g:ycm_global_ycm_extra_conf= '~/.vim/bundle/YouCompleteMe/.ycm_extra_conf.py'
 
@@ -570,3 +576,17 @@ normal ""p
 endfunction
 nmap <silent> ;y :call Write_copy_file()<Enter>
 nmap <silent> ;p :call Read_copy_file()<Enter>
+
+"----carbon-now-sh settings
+let g:carbon_now_sh_browser = 'google-chrome-stable'
+vnoremap <F6> :CarbonNowSh<CR>
+let g:carbon_now_sh_options = {'t': 'synthwave-84'}
+
+"----vim latex settings
+let g:tex_flavor = 'latex'
+let g:vimtex_quickfix_mode = 0 "cancel error fix window pops up
+let g:vimtex_view_general_viewer = 'zathura'
+let g:vimtex_view_method = 'zathura'
+
+"----Float Terminal Settings
+let g:fterm_shell = "zsh"
