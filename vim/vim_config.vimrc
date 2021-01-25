@@ -45,6 +45,8 @@ let mapleader = ","
 
 " fast saving
 nmap <leader>w :w!<cr>
+" fast source
+nmap <leader>sf :source ~/.vimrc<CR>
 
 " :W sudo saves the file,useful for handling the permission-denied error
 command! W execute 'w !sudo tee % > /dev/null' <bar> edit!
@@ -560,16 +562,16 @@ func! CompileRunGcc()
     endif
 endfunc
  
-"--- 跨终端粘贴
+"--- paste across terminals
 let g:copy_file=$HOME . "/.vim_copybuffer"
 function Write_copy_file()
-"本函数将 @" 缓冲区内容写入文件
+"write what in the @" buffer into the file
 let lines=split(@", "\n")
 call writefile(lines,g:copy_file)
 endfunction
 
 function Read_copy_file()
-"将copy_file文件写入@" 缓冲区，并且粘贴
+"write what in the @" buffer into the file and paste it
 let l:buf=readfile(g:copy_file)
 let @"=join(l:buf,"\n")
 normal ""p
@@ -589,4 +591,12 @@ let g:vimtex_view_general_viewer = 'zathura'
 let g:vimtex_view_method = 'zathura'
 
 "----Float Terminal Settings
-let g:fterm_shell = "zsh"
+let g:floaterm_shell = "zsh"
+"let g:floaterm_keymap_new = '<leader>n'
+noremap <leader>n :FloatermNew --cmd="<root>"<CR>
+let g:floaterm_keymap_prev = '<leader>fp'
+let g:floaterm_keymap_next = '<leader>fn'
+let g:floaterm_keymap_toggle = '<leader>ft'
+let g:floaterm_keymap_kill = '<leader>fk'
+let g:floaterm_keymap_hide = '<leader>fh'
+
