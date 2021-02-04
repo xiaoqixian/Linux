@@ -9,8 +9,10 @@ call vundle#begin()
 ""let Vundle manage Vundle, required
 Plugin 'VundleVim/Vundle.vim'
 Plugin 'scrooloose/nerdtree'
-Plugin 'Lokaltog/vim-powerline'
-Plugin 'Valloric/YouCompleteMe'
+"Plugin 'Lokaltog/vim-powerline'
+Plugin 'vim-airline/vim-airline'
+Plugin 'vim-airline/vim-airline-themes'
+"Plugin 'Valloric/YouCompleteMe'
 Plugin 'jiangmiao/auto-pairs'
 Plugin 'tpope/vim-surround'
 Plugin 'gcmt/wildfire.vim'
@@ -19,12 +21,13 @@ Plugin 'kristijanhusak/vim-carbon-now-sh'
 Plugin 'lervag/vimtex'
 "Plugin 'zhiyuanlck/vim-float-terminal'
 Plugin 'voldikss/vim-floaterm'
+Plugin 'rust-lang/rust.vim'
+Plugin 'neoclide/coc.nvim'
 
 call vundle#end()
 filetype plugin indent on
 
 """"""""""""""""""""""""""""""""""""""""""""""""""""
-
 "set colorscheme
 "colorscheme dracula
 "set background=dark
@@ -47,11 +50,13 @@ let mapleader = ","
 nmap <leader>w :w!<cr>
 " fast source
 nmap <leader>sf :source ~/.vimrc<CR>
+nmap <leader>nh :nohl<CR>
 
 " :W sudo saves the file,useful for handling the permission-denied error
 command! W execute 'w !sudo tee % > /dev/null' <bar> edit!
 
-
+cnoremap <c-n> <down>
+cnoremap <c-p> <up>
 
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 "VIM user interface
@@ -511,21 +516,21 @@ autocmd BufNewFile * normal G
 "               YCM配置
 "************************************************
 "让vim的补全菜单行为与一般IDE一致
-set completeopt=longest,menu
+"set completeopt=longest,menu
 
-"离开插入模式后自动关闭预览窗口
-autocmd InsertLeave * if pumvisible() == 0|pclose|endif
+""离开插入模式后自动关闭预览窗口
+"autocmd InsertLeave * if pumvisible() == 0|pclose|endif
 
-"在注释输入中也能补全
-let g:ycm_complete_in_comments = 1
-"在字符串输入中也能补全
-let g:ycm_complete_in_strings = 1
-"从注释和字符串中收入补全
-let g:ycm_collect_identifiers_from_comments_and_strings = 1
-"取消代码诊断
-let g:ycm_show_diagnostics_ui = 0
+""在注释输入中也能补全
+"let g:ycm_complete_in_comments = 1
+""在字符串输入中也能补全
+"let g:ycm_complete_in_strings = 1
+""从注释和字符串中收入补全
+"let g:ycm_collect_identifiers_from_comments_and_strings = 1
+""取消代码诊断
+"let g:ycm_show_diagnostics_ui = 0
 
-let g:ycm_global_ycm_extra_conf= '~/.vim/bundle/YouCompleteMe/.ycm_extra_conf.py'
+"let g:ycm_global_ycm_extra_conf= '~/.vim/bundle/YouCompleteMe/.ycm_extra_conf.py'
 
 """"""""""NERDTree Configuration""""""""""
 ""autocmd vimenter * NERDTree
@@ -538,7 +543,7 @@ let NERDTreeShowHidden=1
 "两边的窗口跳转快捷键 ctrl+w+w"
 map <space> <C-W>w
 "只剩NERDTree时自动关闭
-autocmd bufenter * if (winnr("$") == 1 && exists("b:NERDTreeType") && b:NERDTreeType == "primary") | q | endif
+"autocmd bufenter * if (winnr("$") == 1 && exists("b:NERDTreeType") && b:NERDTreeType == "primary") | q | endif
 
 "********************************************************
  "          c,c++,java,shell 按<F5>编译运行                  
@@ -580,7 +585,7 @@ nmap <silent> ;y :call Write_copy_file()<Enter>
 nmap <silent> ;p :call Read_copy_file()<Enter>
 
 "----carbon-now-sh settings
-let g:carbon_now_sh_browser = 'google-chrome-stable'
+let g:carbon_now_sh_browser = 'chromium'
 vnoremap <F6> :CarbonNowSh<CR>
 let g:carbon_now_sh_options = {'t': 'synthwave-84'}
 
@@ -599,4 +604,35 @@ let g:floaterm_keymap_next = '<leader>fn'
 let g:floaterm_keymap_toggle = '<leader>ft'
 let g:floaterm_keymap_kill = '<leader>fk'
 let g:floaterm_keymap_hide = '<leader>fh'
+
+let g:airline_theme = 'fruit_punch'
+let g:airline_mode_map = {}
+let g:airline_mode_map['ic'] = 'INSERT'
+
+""""""""""""""""""""""""""""""""""""""""""""
+"         COC Configuration
+""""""""""""""""""""""""""""""""""""""""""""
+"Textedit might fail if hidden is not set.
+set hidden
+
+"Always show the signcolumn, otherwise it would shift the text each time
+if has("patch-8.1.1564")
+    set signcolumn=number
+else
+    set signcolumn=yes
+endif
+
+set updatetime=300
+
+"Use tab for trigger completion with charaters ahead and navigate.
+inoremap <silent><expr> <TAB>
+      \ pumvisible() ? "\<C-n>" :
+      \ <SID>check_back_space() ? "\<TAB>" :
+      \ coc#refresh()
+inoremap <expr><S-TAB> pumvisible() ? "\<C-p>" : "\<C-h>"
+
+function! s:check_back_space() abort
+    let col = col('.') - 1
+    return !col || getline('.')[col - 1] =~# '\s'
+endfunction
 
