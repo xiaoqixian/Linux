@@ -12,7 +12,7 @@ Plugin 'scrooloose/nerdtree'
 "Plugin 'Lokaltog/vim-powerline'
 Plugin 'vim-airline/vim-airline'
 Plugin 'vim-airline/vim-airline-themes'
-"Plugin 'Valloric/YouCompleteMe'
+Plugin 'Valloric/YouCompleteMe'
 Plugin 'jiangmiao/auto-pairs'
 Plugin 'tpope/vim-surround'
 Plugin 'gcmt/wildfire.vim'
@@ -22,8 +22,9 @@ Plugin 'lervag/vimtex'
 "Plugin 'zhiyuanlck/vim-float-terminal'
 Plugin 'voldikss/vim-floaterm'
 Plugin 'rust-lang/rust.vim'
-Plugin 'neoclide/coc.nvim'
-
+Plugin 'octol/vim-cpp-enhanced-highlight'
+Plugin 'majutsushi/tagbar'
+"Plugin 'neoclide/coc.nvim'"
 call vundle#end()
 filetype plugin indent on
 
@@ -135,6 +136,7 @@ set foldcolumn=1
 highlight PMenu ctermfg=225 ctermbg=60 guifg=black guibg=darkgrey
 highlight PMenuSel ctermfg=242 ctermbg=8 guifg=darkgrey guibg=black
 highlight Comment ctermfg=104 ctermbg=none
+highlight Search ctermfg=116 ctermbg=211
 
 " syntax highlighting
 syntax enable
@@ -516,21 +518,26 @@ autocmd BufNewFile * normal G
 "               YCM配置
 "************************************************
 "让vim的补全菜单行为与一般IDE一致
-"set completeopt=longest,menu
+set completeopt=longest,menu
 
 ""离开插入模式后自动关闭预览窗口
-"autocmd InsertLeave * if pumvisible() == 0|pclose|endif
+autocmd InsertLeave * if pumvisible() == 0|pclose|endif
 
 ""在注释输入中也能补全
-"let g:ycm_complete_in_comments = 1
+let g:ycm_complete_in_comments = 1
 ""在字符串输入中也能补全
-"let g:ycm_complete_in_strings = 1
+let g:ycm_complete_in_strings = 1
 ""从注释和字符串中收入补全
-"let g:ycm_collect_identifiers_from_comments_and_strings = 1
+let g:ycm_collect_identifiers_from_comments_and_strings = 1
 ""取消代码诊断
-"let g:ycm_show_diagnostics_ui = 0
+let g:ycm_show_diagnostics_ui = 0
 
-"let g:ycm_global_ycm_extra_conf= '~/.vim/bundle/YouCompleteMe/.ycm_extra_conf.py'
+let g:ycm_global_ycm_extra_conf= '~/.vim/bundle/YouCompleteMe/.ycm_extra_conf.py'
+
+let g:ycm_filetype_specific_completino_to_disable = {
+            \ 'cpp': 1,
+            \ 'c': 1
+            \}
 
 """"""""""NERDTree Configuration""""""""""
 ""autocmd vimenter * NERDTree
@@ -608,31 +615,76 @@ let g:floaterm_keymap_hide = '<leader>fh'
 let g:airline_theme = 'fruit_punch'
 let g:airline_mode_map = {}
 let g:airline_mode_map['ic'] = 'INSERT'
+tnoremap <silent> <leader>a :<C-\><C-n>
 
 """"""""""""""""""""""""""""""""""""""""""""
 "         COC Configuration
 """"""""""""""""""""""""""""""""""""""""""""
 "Textedit might fail if hidden is not set.
-set hidden
+"set hidden
 
-"Always show the signcolumn, otherwise it would shift the text each time
-if has("patch-8.1.1564")
-    set signcolumn=number
-else
-    set signcolumn=yes
-endif
+""Always show the signcolumn, otherwise it would shift the text each time
+"if has("patch-8.1.1564")
+    "set signcolumn=number
+"else
+    "set signcolumn=yes
+"endif
 
-set updatetime=300
+"set updatetime=300
 
-"Use tab for trigger completion with charaters ahead and navigate.
-inoremap <silent><expr> <TAB>
-      \ pumvisible() ? "\<C-n>" :
-      \ <SID>check_back_space() ? "\<TAB>" :
-      \ coc#refresh()
-inoremap <expr><S-TAB> pumvisible() ? "\<C-p>" : "\<C-h>"
+""Use tab for trigger completion with charaters ahead and navigate.
+"inoremap <silent><expr> <TAB>
+      "\ pumvisible() ? "\<C-n>" :
+      "\ <SID>check_back_space() ? "\<TAB>" :
+      "\ coc#refresh()
+"inoremap <expr><S-TAB> pumvisible() ? "\<C-p>" : "\<C-h>"
 
-function! s:check_back_space() abort
-    let col = col('.') - 1
-    return !col || getline('.')[col - 1] =~# '\s'
-endfunction
+"function! s:check_back_space() abort
+    "let col = col('.') - 1
+    "return !col || getline('.')[col - 1] =~# '\s'
+"endfunction
+
+""""""""""""""""""""""""""""""""""""""""""""""""
+"              Tagbar Configuration
+""""""""""""""""""""""""""""""""""""""""""""""""
+let tagbar_right=1
+nnoremap <leader>v :TagbarToggle<CR>
+let tagbar_width=32
+"Don't show redundant help information
+let g:tagbar_compact=1
+let g:tagbar_ctags_bin="/home/lunar/clones/ctags/ctags"
+"What kinds of code identifiers for ctags to generate labels
+let g:tagbar_type_cpp = {
+    \ 'kinds' : [
+         \ 'c:classes:0:1',
+         \ 'd:macros:0:1',
+         \ 'e:enumerators:0:0', 
+         \ 'f:functions:0:1',
+         \ 'g:enumeration:0:1',
+         \ 'l:local:0:1',
+         \ 'm:members:0:1',
+         \ 'n:namespaces:0:1',
+         \ 'p:functions_prototypes:0:1',
+         \ 's:structs:0:1',
+         \ 't:typedefs:0:1',
+         \ 'u:unions:0:1',
+         \ 'v:global:0:1',
+         \ 'x:external:0:1'
+     \ ],
+     \ 'sro'        : '::',
+     \ 'kind2scope' : {
+         \ 'g' : 'enum',
+         \ 'n' : 'namespace',
+         \ 'c' : 'class',
+         \ 's' : 'struct',
+         \ 'u' : 'union'
+     \ },
+     \ 'scope2kind' : {
+         \ 'enum'      : 'g',
+         \ 'namespace' : 'n',
+         \ 'class'     : 'c',
+         \ 'struct'    : 's',
+         \ 'union'     : 'u'
+     \ }
+\ }
 
