@@ -1,0 +1,155 @@
+@import url(./less-light.css);
+@import url(./assets-less/Print.css);
+
+:root {
+  --text-font: Lora, Georgia, "Times New Roman", "Noto Serif CJK SC", serif;
+  --text-font-jp: Lora, Georgia, "Times New Roman", "Noto Serif CJK JP", serif;
+  --title-font: var(--text-font);
+  --min-title-font: Lato, "Helvetica Neue", Helvetica, Arial, "Noto Sans CJK SC", sans-serif;
+  --hei-font: var(--monospace);
+  --ol-font: "Josefin Sans", "Helvetica Neue", Helvetica, "Segoe Print", "TW-Kai", "STKaiti,", "Kaiti";
+  --ol-font-jp: "Josefin Sans", "Helvetica Neue", Helvetica, "Segoe Print", "A-OTF Kyoukasho ICA Pro", "UD Digi Kyokasho N-R", "TW-Kai";
+  --ul-font: Lora, Georgia, "Times New Roman", "Noto Serif CJK JP", serif;
+  --ul-font-cn: Lora, Georgia, "Times New Roman", "Noto Serif CJK SC", serif;
+  --font-quota: "悠哉字体", "A-OTF Kyoukasho ICA Pro", "TW-Kai";
+  --mono-font: var(--ol-font);
+  --mono-font-jp: var(--ol-font-jp);
+  --monospace: "Cascadia code", Monaco, "Deja Vu Sans Mono", Consolas, "Lucida Console", "Andale Mono", Courier, sans-serif;
+
+  --color-text: hsl(0, 0%, 5%);
+  --color-em: #000;
+  --color-strong: #000;
+  --color-weak: hsl(0, 0%, 10%);
+  --color-weakest: hsl(0, 0%, 15%);
+
+  --bg-thead: #fcfcfc;
+  --bg-tbody-opt: #ffffff;
+  --bg-tbody: #fcfcfc;
+}
+
+html,
+body,
+content,
+#write {
+  font-family: var(--text-font);
+  line-height: 1.75rem;
+}
+
+#write p em {
+  font-family: var(--text-font-jp);
+}
+
+#write h1,
+#write h2,
+#write h3,
+#write h4 {
+  font-family: var(--title-font);
+  font-weight: 800;
+}
+
+#write h2 span {
+  background: linear-gradient(to bottom, transparent 60%, hsl(0, 100%, 95%) 0) no-repeat;
+}
+
+#write h4 {
+  border-left: 4px solid hsl(0, 100%, 75%);
+  padding-left: 1rem;
+}
+
+#write h3,
+#write h4,
+#write h5,
+#write h6 {
+  margin: 1rem auto 0.5rem;
+}
+
+#write h5,
+#write h6 {
+  font-family: var(--min-title-font);
+  font-weight: 600;
+}
+
+#write code,
+#write mark,
+#write kbd,
+#write samp,
+#write tt,
+#write var,
+#write a,
+#write strong,
+#write em {
+  padding: 0px 2px;
+}
+
+#write em,
+#write strong {
+  font-family: inherit;
+  font-size: inherit;
+}
+
+#write em {
+  font-weight: normal;
+  font-style: normal;
+  border-bottom: none;
+}
+
+#write ul li {
+  font-family: var(--ul-font);
+  font-size: 1rem !important;
+}
+
+#write ol li {
+  font-family: var(--ol-font);
+  font-size: 1.2rem !important;
+}
+
+#write ol ul li {
+  font-family: var(--ul-font);
+  font-size: 1rem !important;
+}
+
+#write ol em {
+  font-family: var(--ol-font-jp);
+  font-size: 1rem;
+  line-height: 1.75rem;
+}
+
+#write ul em {
+  font-family: var(--ul-font-cn);
+}
+
+#write blockquote ol li {
+  font-size: 1rem !important;
+}
+
+#write blockquote {
+  border: 2px dotted #7f7f7f;
+  background: none;
+}
+
+#write blockquote * {
+  font-family: var(--font-quota) !important;
+}
+
+#write blockquote blockquote {
+  padding: 0;
+  padding-left: 1rem;
+  border: none;
+  border-left: var(--base-borderl);
+}
+
+#write blockquote p {
+  font-size: 1rem;
+}
+
+#write code {
+  font-family: var(--hei-font) !important;
+  font-size: 1rem;
+  background: none;
+}
+
+#write u {
+  text-decoration: none;
+  font-family: var(--ol-font) !important;
+  font-size: 1.2rem;
+}
