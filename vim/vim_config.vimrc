@@ -134,9 +134,11 @@ set foldcolumn=1
 "YouCompleteMe color set
 "highlight PMenu ctermfg=#D8547B ctermbg=#3A506B
 highlight PMenu ctermfg=225 ctermbg=60 guifg=black guibg=darkgrey
-highlight PMenuSel ctermfg=242 ctermbg=8 guifg=darkgrey guibg=black
+highlight PMenuSel ctermfg=242 ctermbg=225 guifg=darkgrey guibg=black
 highlight Comment ctermfg=104 ctermbg=none
 highlight Search ctermfg=116 ctermbg=211
+
+highlight TabLineFill ctermbg=none ctermfg=none
 
 " syntax highlighting
 syntax enable
