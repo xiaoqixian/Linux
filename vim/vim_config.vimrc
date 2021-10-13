@@ -525,18 +525,15 @@ set completeopt=longest,menu
 ""离开插入模式后自动关闭预览窗口
 autocmd InsertLeave * if pumvisible() == 0|pclose|endif
 
-""在注释输入中也能补全
+let g:ycm_min_num_of_chars_for_completion = 4
 let g:ycm_complete_in_comments = 1
-""在字符串输入中也能补全
 let g:ycm_complete_in_strings = 1
-""从注释和字符串中收入补全
 let g:ycm_collect_identifiers_from_comments_and_strings = 1
-""取消代码诊断
 let g:ycm_show_diagnostics_ui = 0
 
 let g:ycm_global_ycm_extra_conf= '~/.vim/bundle/YouCompleteMe/.ycm_extra_conf.py'
 
-let g:ycm_filetype_specific_completino_to_disable = {
+let g:ycm_filetype_specific_completion_to_disable = {
             \ 'cpp': 1,
             \ 'c': 1
             \}
@@ -550,7 +547,8 @@ let NERDTreeMouseMode=2
 "语法高亮显示当前文件或目录"
 let NERDTreeShowHidden=1
 "两边的窗口跳转快捷键 ctrl+w+w"
-map <space> <C-W>w
+nnoremap <space> <C-W>w
+map <s-space> <C-W>h
 "只剩NERDTree时自动关闭
 "autocmd bufenter * if (winnr("$") == 1 && exists("b:NERDTreeType") && b:NERDTreeType == "primary") | q | endif
 
@@ -654,7 +652,8 @@ nnoremap <leader>v :TagbarToggle<CR>
 let tagbar_width=32
 "Don't show redundant help information
 let g:tagbar_compact=1
-let g:tagbar_ctags_bin="/home/lunar/clones/ctags/ctags"
+"let g:tagbar_ctags_bin="/home/lunar/clones/ctags/ctags"
+let g:tagbar_ctags_bin="/usr/bin/ctags"
 "What kinds of code identifiers for ctags to generate labels
 let g:tagbar_type_cpp = {
     \ 'kinds' : [
