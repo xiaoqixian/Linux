@@ -1,4 +1,4 @@
-### **Linux Staff**
+### **Linux Stuff**
 
 linux repository用来存放一些关于Linux各发行版的使用笔记
 
