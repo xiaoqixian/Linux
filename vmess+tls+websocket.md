@@ -73,7 +73,7 @@ nginx有一个特点是可以实现特定路径的请求转发，这正是vmess+
 
 在nginx配置文件中监听443端口的server中添加：
 
-```json
+```nginx
 location /ray { #路径可以自己定义
 	    if ($http_upgrade != "websocket") { # WebSocket协商失败时返回404
 		return 404;
