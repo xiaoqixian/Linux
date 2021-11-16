@@ -20,7 +20,7 @@
 
 在`/etc/nginx/nginx.conf`下添加一个server, 或者直接修改默认配置文件也可以：
 
-```json
+```nginx
 server {
     listen 80;
     server_name domain.name;
@@ -41,7 +41,7 @@ server {
 
 接下来在nginx配置文件中添加https的server，这个比较复杂，这里给出我的：
 
-```json
+```nginx
     server {
 	  listen 443 ssl;
 	  listen [::]:443 ssl;
