@@ -14,7 +14,7 @@
 
 `curl https://get.acme.sh | sh`
 
-下载到的shell文件在当前路径下的.acme.sh文件夹下。
+下载到的shell文件在当前路径下的.acme.sh文件夹下。其次，需要更改acme的默认证书服务器为letsencrypt: `./acme.sh --set-default-ca --server letsencrypt`
 
 安装nginx，在centos下的默认配置文件路径为`/etc/nginx/nginx.conf`，修改配置文件监听80端口，因为acme.sh需要检测域名对应IP的服务器是否为你所有，acme.sh会在服务器的一定路径下创建一些文件并通过域名进行下载，可以下载成功才可能认证成功。
 
@@ -58,7 +58,7 @@ server {
 
 	  server_name            domain.name;
 	  location / {
-          /usr/share/nginx/html
+          root /usr/share/nginx/html;
       }
 }
 ```
@@ -92,6 +92,13 @@ location /ray { #路径可以自己定义
 ```
 
 这里需要注意的两个点：一个是路径，另一个是转发的端口，都需要与v2ray的server配置文件相对应。
+
+#### 获取v2ray
+
+`bash <(curl -L https://raw.githubusercontent.com/v2fly/fhs-install-v2ray/master/install-release.sh)`
+
+2022/05/05 22:12:27 [Warning] [4001912449] app/proxyman/outbound: failed to process outbound traffic > proxy/vmess/outbound: connection ends > proxy/vmess/outbound: failed to read header > proxy/vmess/encoding: failed to read response header > websocket: close 1000 (normal)
+2022/05/05 22:12:27 [Warning] [4001912449] proxy/http: failed to read response from 149.154.167.41:80 > io: read/write on closed pipe
 
 #### server config.json
 
@@ -224,3 +231,10 @@ location /ray { #路径可以自己定义
 
 这里需要注意的一点是outbounds的端口要设置为443端口，即https的端口，而不是server config.json中指定的端口，因为请求需要先发送给nginx进行转发，address也是设置为域名而不是ip地址。
 
+### Tips
+
+#### 系统时间同步问题
+
+服务器时间和客户端时间的同步对于 v2ray 的正常工作非常重要，而且本地时间必须是硬件时间（通过 `hwclock --verbose` 显示的时间）。今天（2022/5/5）就是因为从 Linux 换到 Windows 用了几个小时导致 Linux 重新开机后系统时间出现了差错，导致 websocket 一直无法连接，搞得我快抑郁了。
+
+同步方法：Windows 可以在系统设置里直接同步，Linux 首先在系统设置里将系统时间改回正常时间，然后通过命令 `sudo hwclock --systohc` 将硬件时间改回來就可以了。
