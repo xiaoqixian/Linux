@@ -6,6 +6,8 @@
 
 重载以生效：`firewall-cmd --reload`
 
+若是 Arch Linux, 则可以用 `iptables -I INPUT -p tcp --dport 80 -j ACCEPT` 开放80端口。
+
 #### SSL证书获取
 
 首先保证购买到一个域名并将域名的DNS解析指向你的服务器IP。
@@ -96,9 +98,6 @@ location /ray { #路径可以自己定义
 #### 获取v2ray
 
 `bash <(curl -L https://raw.githubusercontent.com/v2fly/fhs-install-v2ray/master/install-release.sh)`
-
-2022/05/05 22:12:27 [Warning] [4001912449] app/proxyman/outbound: failed to process outbound traffic > proxy/vmess/outbound: connection ends > proxy/vmess/outbound: failed to read header > proxy/vmess/encoding: failed to read response header > websocket: close 1000 (normal)
-2022/05/05 22:12:27 [Warning] [4001912449] proxy/http: failed to read response from 149.154.167.41:80 > io: read/write on closed pipe
 
 #### server config.json
 
