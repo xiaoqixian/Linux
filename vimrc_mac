@@ -22,17 +22,16 @@ Plugin 'majutsushi/tagbar'
 "Plugin 'ryanoasis/vim-devicons'
 Plugin 'lervag/vimtex'
 "Plugin 'hdima/python-syntax'
+Plugin 'udalov/kotlin-vim'
+Plugin 'junegunn/fzf', { 'do': { -> fzf#install() } }
+Plugin 'junegunn/fzf.vim'
+Plugin 'ctrlpvim/ctrlp.vim'
+
 
 call vundle#end()
 
 filetype plugin indent on
 
-
-" fast saving
-nmap <leader>w :w!<cr>
-" fast source
-nmap <leader>sf :source ~/.nvimrc<CR>
-nmap <leader>nh :nohl<CR>
 
 " :W sudo saves the file,useful for handling the permission-denied error
 command! W execute 'w !sudo tee % > /dev/null' <bar> edit!
@@ -99,7 +98,9 @@ set noswapfile
 """"""""""""""""""""""""""""""""""""""""""""""""
 " => mapping
 """"""""""""""""""""""""""""""""""""""""""""""""
-vnoremap <leader>y y:call system("xclip -selection c", @")<CR>
+"vnoremap <leader>y y:call system("xclip -selection c", @")<CR>
+"vnoremap <silent> <leader>y :w !pbcopy<CR>
+set clipboard=unnamed
 
 map <S-down> <C-W>j
 map <S-up> <C-W>k
@@ -110,9 +111,12 @@ nnoremap <space> <C-w>w
 inoremap jj <ESC>
 
 nmap <leader>w :w!<cr>
-nmap <leader>sf :source ~/.nvimrc<CR>
+nmap <leader>sf :source ~/.vimrc<CR>
 nmap <leader>nh :nohl<CR>
+nmap <leader>rg :Rg<CR>
 nmap P "0p
+nmap <leader>zz :.s/\[/{/g<CR>:.s/\]/}/g<CR>:nohl<CR>
+
 imap II <ESC>"+pa
 imap <PageUp> <Home>
 imap <PageDown> <End>
@@ -429,7 +433,7 @@ let tagbar_width=32
 "Don't show redundant help information
 let g:tagbar_compact=1
 "let g:tagbar_ctags_bin="/home/lunar/clones/ctags/ctags"
-let g:tagbar_ctags_bin="/usr/bin/ctags"
+let g:tagbar_ctags_bin="/usr/local/bin/ctags"
 "What kinds of code identifiers for ctags to generate labels
 let g:tagbar_type_cpp = {
     \ 'kinds' : [
@@ -492,3 +496,37 @@ function! s:show_documentation()
 endfunction
 
 let g:tex_flavor = 'latex'
+
+function FindCursorPopUp()
+ let radius = get(a:000, 0, 2)
+ let srow = screenrow()
+ let scol = screencol()
+ " it's necessary to test entire rect, as some popup might be quite small
+ for r in range(srow - radius, srow + radius)
+   for c in range(scol - radius, scol + radius)
+     let winid = popup_locate(r, c)
+     if winid != 0
+       return winid
+     endif
+   endfor
+ endfor
+
+ return 0
+endfunction
+
+function ScrollPopUp(down)
+ let winid = FindCursorPopUp()
+ if winid == 0
+   return 0
+ endif
+
+ let pp = popup_getpos(winid)
+ call popup_setoptions( winid,
+       \ {'firstline' : pp.firstline + ( a:down ? 1 : -1 ) } )
+
+ return 1
+endfunction
+
+nnoremap <expr> <S-Down> ScrollPopUp(1) ? '<esc>' : '<c-d>'
+nnoremap <expr> <S-Up> ScrollPopUp(0) ? '<esc>' : '<c-u>'
+
