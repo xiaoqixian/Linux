@@ -1,0 +1,88 @@
+                                                                                                                      {
+ "log": {
+  "loglevel": "error"
+ },
+    "routing": {
+        "domainStrategy": "IpIfNonMatch",
+        "rules": [
+            {
+                "type": "field",
+                "outboundTag": "directTag",
+                "domain": [
+                    "upp.itunes.apple.com", 
+                    "xp.apple.com", 
+                    "radio-activity.itunes.apple.com", 
+                    "radio.itunes.apple.com", 
+                    "amp-api.music.apple.com", 
+                    "p43-buy.itunes.apple.com",
+                    "play.itunes.apple.com",
+                    "streamingaudio.itunes.apple.com",
+                    "is1-ssl.mzstatic.com",
+                    "is2-ssl.mzstatic.com",
+                    "is3-ssl.mzstatic.com",
+                    "is4-ssl.mzstatic.com",
+                    "is5-ssl.mzstatic.com",
+                    "bam.nr-data.net",
+                    "aodp-ssl.itunes.apple.com",
+                    "geosite:cn"]
+            },
+            {
+                "type": "field",
+                "outboundTag": "directTag",
+                "ip": [
+                    "geoip:cn",
+                    "geoip:private"
+                ]
+            },
+            {
+                "type": "field",
+                "outboundTag": "proxyTag",
+                "network": "udp, tcp"
+            }
+        ]
+    },
+ "inbounds": [
+        {
+            "port": 1196,
+            "protocol": "http",
+            "settings": {
+                "auth": "noauth"
+            },
+            "tag": "http"
+        }
+ ],
+ "outbounds": [
+  {
+   "protocol": "vmess",
+   "settings": {
+    "vnext": [
+     {
+      "users": [
+       {
+            "id": "",
+        	"alterId": 1,
+            "encryption": "none"
+       }
+      ],
+      "port": 0,
+      "address": ""
+     }
+    ]
+   },
+            "tag": "proxyTag",
+            "streamSettings": {
+                "network": "ws",
+                "wsSettings": {
+                    "path": "/",
+                    "headers": {
+                        "Host": ""
+                    }
+                }
+            }
+  },
+  {
+   "protocol": "freedom",
+   "tag": "directTag"
+  }
+ ]
+}

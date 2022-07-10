@@ -26,6 +26,7 @@ Plugin 'udalov/kotlin-vim'
 Plugin 'junegunn/fzf', { 'do': { -> fzf#install() } }
 Plugin 'junegunn/fzf.vim'
 Plugin 'ctrlpvim/ctrlp.vim'
+Plugin 'plasticboy/vim-markdown'
 
 
 call vundle#end()

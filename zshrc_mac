@@ -102,12 +102,13 @@ source $ZSH/oh-my-zsh.sh
 source /Users/lunar/clones/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
 export HOMEBREW_BOTTLE_DOMAIN=https://mirrors.aliyun.com/homebrew/homebrew-bottles
 export HOMEBREW_NO_AUTO_UPDATE=true
-export http_proxy="http://127.0.0.1:7890"
-export https_proxy="http://127.0.0.1:7890"
+export http_proxy="http://127.0.0.1:1196"
+export https_proxy="http://127.0.0.1:1196"
 export inc="/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include"
 export FZF_DEFAULT_COMMAND="fd --exclude={.git,node_modules,build} --type f"
 export FZF_DEFAULT_OPTS="--ansi --preview-window 'right:60%' --layout reverse --margin=1,4 --preview 'bat --color=always --style=header,grid --line-range :300 {}'"
 export BAT_THEME="Dracula"
+export PATH="/Users/lunar/.cargo/bin:$PATH"
 #export FZF_DEFAULT_OPTS="--height 40% --layout=reverse --preview '(highlight -0 ansi {} || cat {}) 2> /dev/null | head -500'"
 
 alias vpn="~/v2ray-macos-64/v2ray -c ~/v2ray-macos-64/config.json > /dev/null 2>&1 &"
