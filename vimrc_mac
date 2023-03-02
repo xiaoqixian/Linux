@@ -243,6 +243,8 @@ tnoremap <silent> <leader>a :<C-\><C-n>
 "-----NERTree Settings
 map <C-X> :NERDTreeMirror<CR>
 map <C-X> :NERDTreeToggle<CR>
+map <C-z> :NERDTreeMirror<CR
+map <C-z> :NERDTreeToggle<CR>
 "鼠标模式：目录单击，文件双击"
 "let NERDTreeMouseMode=2
 "语法高亮显示当前文件或目录"
@@ -531,3 +533,4 @@ endfunction
 nnoremap <expr> <S-Down> ScrollPopUp(1) ? '<esc>' : '<c-d>'
 nnoremap <expr> <S-Up> ScrollPopUp(0) ? '<esc>' : '<c-u>'
 
+au FileType rust let b:AutoPairs = AutoPairsDefine({'<':'>'})
