@@ -4,11 +4,6 @@
 # Mail: lunar_ubuntu@qq.com
 # Author: https://github.com/xiaoqixian
 
-Sourcesystem="ABC"
+config="$HOME/config.json"
 
-if [ 'XYZ' = "$Sourcesystem" ]; then
-    echo "Sourcesystem Matched"
-else
-    echo "Sourcesystem is NOT Matched $Sourcesystem"
-fi;
-
+jj -i "${config}" -o "${config}" -v '[{"type": "field","outboundTag": "directTag"}]' -r routing.rules
