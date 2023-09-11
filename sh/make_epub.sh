@@ -77,7 +77,12 @@ check_args() {
 
     if [ -f "$out.epub" -o -d "$out.epub" ]; then
         error "Output file '$out.epub' exists"
-        return 1
+        echo -n "Remove '$out.epub'? [y/n]:"
+        read ans
+        if [[ $ans = "y" || $ans = "Y" ]]; then
+            rm -rf "$out.epub"
+        else return 1
+        fi
     fi
 
     if [ ! -z "$cover" ]; then
@@ -348,7 +353,7 @@ add_volume() {
     fi
     echo "    <navPoint id=\"volume$1\" playOrder=\"${toc_order}\">
 <navLabel><text>第${zh_seq}卷 $2</text></navLabel>
-<content src=\"volume$1.html\"/>" >> "${ncx_file}"
+<content src=\"html/volume$1.html\"/>" >> "${ncx_file}"
     let toc_order++
 
     # append to content.opf
@@ -376,7 +381,8 @@ add_chapter() {
 <div>
 <h3>${chapter_name}</h3>" > "${chapter_file}"
 
-    sed -n -e "$3,$4 s/ *\(.*\)/<p>\1<\/p>/p" "$input" >> "${chapter_file}"
+    # match paragraph
+    gsed -n -e "$3,$4 s/^\s*\(\S*\)\s*$/<p>\1<\/p>/p" "$input" >> "${chapter_file}"
 
     echo '</div>
 </body>
