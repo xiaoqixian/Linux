@@ -398,7 +398,7 @@ add_chapter() {
 
 collect_volume_chapters() {
     volumes=(0)
-    volumes+=( $(cat -n "$input" | gsed -n -e "s/\s *\([0-9]\+\)\s*${volume_pattern}.*/\1/p") )
+    volumes+=( $(cat -n "$input" | gsed -n -e "s/\s*\([0-9]\+\)\s*${volume_pattern}.*/\1/p") )
     debug "volume line number collected"
     chapters=( $(cat -n "$input" | gsed -n -e "s/\s*\([0-9]\+\)\s*${chapter_pattern}.*/\1/p") )
     debug "chapter line number collected"
