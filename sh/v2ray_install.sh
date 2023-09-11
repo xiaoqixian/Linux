@@ -2,7 +2,6 @@
 # Mail: lunar_ubuntu@qq.com
 # Author: https://github.com/xiaoqixian
 
-options=$(getopt -l domain:,wspath::,id:,logpath::,loglevel::,help -o d:w::i:p:l:h -- "$@")
 ws_path="blog"
 loglevel="Info"
 logpath="/dev/null"
@@ -18,17 +17,15 @@ usage() {
     "
 }
 
-eval set -- "$options"
-
-while true
-do
+while [ $# -gt 0 ]; do
     case "$1" in
         -d | --domain) domain="$2"; shift 2;;
         -w | --wspath) ws_path="$2"; shift 2;;
         -i | --id) id="$2"; shift 2;;
         -p | --logpath) logpath="$2"; shift 2;;
         -l | --loglevel) loglevel="$2"; shift 2;;
-        -h | --help) usage;;
+        -h | --help) usage; shift;;
+        *) echo "Unrecognized option '$1'"; exit 1;;
     esac
 done
 

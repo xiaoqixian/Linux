@@ -95,6 +95,10 @@ set_routing() {
     #jj -i "${CONFIG}" -o "${CONFIG}" -v '[{"type": "field", "outboundTag": "directTag", "domain": ["geosite:cn"]}, {"type": "field", "outboundTag": "directTag", "ip": ["geoip:cn", "geoip:private"]}, {"type": "field", "outboundTag": "proxyTag", "network": "udp, tcp"}]' -r routing.rules
 }
 
+add_white() {
+    echo "Not avaliable now"
+}
+
 declare -A -r modes=(
     ["routing"]="set_routing"
     ["global"]="set_global"
@@ -103,6 +107,22 @@ declare -A -r modes=(
 
 while [ $# -gt 0 ]; do
     case "$1" in
+        --add_white-site)
+            add_white "$2"
+            shift 2;;
+
+        -d | --domain)
+            set_domain "$2"
+            shift 2;;
+
+        -i | --inbound_port)
+            set_inbound_port "$2"
+            shift 2;;
+
+        -l | --level)
+            set_loglevel "$2"
+            shift 2;;
+
         -m | --mode)
             debug "$2"
             if [[ -z "${modes["$2"]}" ]]; then
@@ -112,28 +132,16 @@ while [ $# -gt 0 ]; do
             ${modes["$2"]}
             shift 2;;
 
-        -l | --level)
-            set_loglevel "$2"
-            shift 2;;
-
-        -d | --domain)
-            set_domain "$2"
-            shift 2;;
-
         -o | --outbound_port)
             set_outbound_port "$2"
             shift 2;;
 
-        -i | --inbound_port)
-            set_inbound_port "$2"
+        -p | --ws_path)
+            set_ws_path "$2"
             shift 2;;
 
         -u | --uuid)
             set_uuid "$2"
-            shift 2;;
-
-        -p | --ws_path)
-            set_ws_path "$2"
             shift 2;;
     esac
 done
