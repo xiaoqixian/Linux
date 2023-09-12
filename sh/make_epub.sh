@@ -8,12 +8,26 @@ error() {
 debug() {
     echo -e "\033[0;32m[Debug] $@\033[0m"
 }
+warn() {
+    echo -e "\033[1;35m[Warn] $@\033[0m"
+}
 
 # globals
 no_chapter_seq=0
 toc_order=1
 readonly volume_pattern='第[零一二两三四五六七八九十百千万0-9\.]\{1,4\}卷'
 readonly chapter_pattern='第[零一二两三四五六七八九十百千万0-9]\{1,7\}章'
+
+# chapter sequence number
+# modified only by add_chapter function
+chapter_seq=1
+volume_seq=1
+chapter_count=1
+volume_count=1
+
+total_volumes=0
+total_chapters=0
+
 declare -A -r zh_nums=(
     ["1"]="一"
     ["2"]="二"
@@ -35,10 +49,20 @@ declare -A -r units=(
 )
 
 check_chapters() {
-    cat -n "$1" | gsed -n -e "s/\s*\([0-9]\+\)\s*\(${chapter_pattern}.*\)/\1 \2/p"
+    debug "extra_chapter_match: ${extra_chapter_match}"
+    if [[ "$extra_chapter_match" ]]; then
+        cat -n "$1" | gsed -n -e "s/^\s*\([0-9]\+\)\s*\(${chapter_pattern}.*\)/\1 \2/p" -e "s/^\s*\([0-9]\+\)\s*\(${extra_chapter_match}\)\s*$/\1 \2/p"
+    else 
+        cat -n "$1" | gsed -n -e "s/^\s*\([0-9]\+\)\s*\(${chapter_pattern}.*\)/\1 \2/p"
+    fi
 }
 check_volumes() {
-    cat -n "$1" | gsed -n -e "s/\s*\([0-9]\+\)\s*\(${volume_pattern}.*\)/\1 \2/p"
+    debug "extra_volume_match: ${extra_volume_match}"
+    if [[ "$extra_volume_match" ]]; then
+        cat -n "$1" | gsed -n -e "s/^\s*\([0-9]\+\)\s*\(${volume_pattern}.*\)/\1 \2/p" -e "s/^\s*\([0-9]\+\)\s*\(${extra_volume_match}\)\s*$/\1 \2/p"
+    else 
+        cat -n "$1" | gsed -n -e "s/^\s*\([0-9]\+\)\s*\(${volume_pattern}.*\)/\1 \2/p"
+    fi
 }
 
 check_args() {
@@ -314,7 +338,7 @@ img {
     <item id=\"coverpage\" href=\"html/coverpage.html\" media-type=\"application/xhtml+xml\" />
     <item id=\"main-css\" href=\"css/main.css\" media-type=\"text/css\" />
     <item id=\"css\" href=\"css/main.css\" media-type=\"text/css\" />
-    <item id=\"cover-image\" href=\"images/cover.${cover_ext}\" media-type=\"image/${cover_ext}\" />
+    <item id=\"cover.${cover_ext}\" href=\"images/cover.${cover_ext}\" media-type=\"image/${cover_ext}\" />
   <spine toc=\"ncx\">" > "$opf_file"
 
     # create coverpage.html
@@ -331,9 +355,37 @@ img {
 }
 
 add_volume() {
-    volume_file="${html_dir}/volume$1.html"
-    touch "$volume_file"
-    zh_seq=$(num_to_zh $1)
+    if [[ $# -lt 1 ]]; then
+        error "add_volume(): insufficient arguments"
+        return 1
+    fi
+    local ln="$1"
+    local extra_matched=0
+
+    if [[ "$extra_volume_match" ]]; then
+        local temp="$(gsed -n "$ln s/^\s*\(${extra_volume_match}\)\s*$/\1/p" "${input}")"
+        if [[ "$temp" ]]; then
+            local volume_name="${temp}"
+            local volume_header="  <h1 class=\"vol\" title=\"${temp}\">${temp}</h1>"
+            local extra_matched=1
+        fi
+    fi
+
+    if [[ -z "${volume_header}" ]]; then
+        zh_seq="$(num_to_zh "${volume_seq}")"
+        let volume_seq++
+        local volume_name="$(gsed -n -e "$ln s/^\s*${volume_pattern} *\(\S*\)\s*$/\1/p" "${input}")"
+        if [[ -z "$volume_name" ]]; then
+            warn "Empty volume name: ${ln} 第${zh_seq}卷"
+            local volume_header="  <h1 class=\"vol\" title=\"第${zh_seq}卷\">第${zh_seq}卷</h1>"
+        else 
+            local volume_header="  <h1 class=\"vol\" title=\"第${zh_seq}卷 ${volume_name}\">第${zh_seq}卷</h1>
+    <p class=\"vol\">${volume_name}</p>"
+        fi
+    fi
+
+    local volume_file="${html_dir}/volume${volume_count}.html"
+    touch "${volume_file}"
 
     echo "<?xml version=\"1.0\" encoding=\"utf-8\" standalone=\"no\"?>
 <html xmlns=\"http://www.w3.org/1999/xhtml\" xml:lang=\"zh-CN\">
@@ -342,34 +394,94 @@ add_volume() {
   <link href=\"../css/main.css\" rel=\"stylesheet\" type=\"text/css\" />
 </head>
 <body class=\"vol\">
-  <h1 class=\"vol\" title=\"第${zh_seq}卷 $2\">第${zh_seq}卷</h1>
-  <p class=\"vol\">$2</p>
+${volume_header}
 </body>
 </html>" > "$volume_file"
-
-    # append to toc.ncx
-    if [ $1 -gt 1 ]; then
+    
+    # append to ncx_file
+    if [[ ${volume_count} -gt 1 ]]; then
         echo "    </navPoint>" >> "${ncx_file}"
     fi
-    echo "    <navPoint id=\"volume$1\" playOrder=\"${toc_order}\">
-<navLabel><text>第${zh_seq}卷 $2</text></navLabel>
-<content src=\"html/volume$1.html\"/>" >> "${ncx_file}"
-    let toc_order++
 
+    if [[ $extra_matched -eq 0 ]]; then
+        local volume_seq_name="第${zh_seq}卷 ${volume_name}"
+    else local volume_seq_name="${volume_name}"
+    fi
+
+    echo -e "\033[1;34m${volume_seq_name}\033[0m"
+
+    echo "    <navPoint id=\"volume${volume_count}\" playOrder=\"${toc_order}\">
+      <navLabel><text>${volume_seq_name}</text></navLabel>
+      <content src=\"html/volume${volume_count}.html\"/>" >> "${ncx_file}"
+
+    let toc_order++
+    
     # append to content.opf
-    gsed -i -e "/<spine.*>/i \ \ \ \ <item id=\"volume$1\" href=\"html/volume$1.html\" media-type=\"application/xhtml+xml\"/>" "$opf_file"
-    echo "    <itemref idref=\"volume$1\"/>" >> "$opf_file"
+    gsed -i -e "/<spine.*>/i \ \ \ \ <item id=\"volume${volume_count}\" href=\"html/volume${volume_count}.html\" media-type=\"application/xhtml+xml\"/>" "$opf_file"
+    echo "    <itemref idref=\"volume${volume_count}\"/>" >> "$opf_file"
+
+    let volume_count++
+    return 0
 }
 
-add_chapter() {
-    chapter_file="${html_dir}/chapter$1.html"
-    touch "$chapter_file"
-    zh_seq=$(num_to_zh $1)
+#add_volume1() {
+    #volume_file="${html_dir}/volume$1.html"
+    #touch "$volume_file"
+    #zh_seq=$(num_to_zh $1)
 
-    if [ $no_chapter_seq -eq 0 ]; then
-        chapter_name="第${zh_seq}章 $2"
-    else chapter_name="$2"
+    #echo "<?xml version=\"1.0\" encoding=\"utf-8\" standalone=\"no\"?>
+#<html xmlns=\"http://www.w3.org/1999/xhtml\" xml:lang=\"zh-CN\">
+#<head>
+  #<title></title>
+  #<link href=\"../css/main.css\" rel=\"stylesheet\" type=\"text/css\" />
+#</head>
+#<body class=\"vol\">
+  #<h1 class=\"vol\" title=\"第${zh_seq}卷 $2\">第${zh_seq}卷</h1>
+  #<p class=\"vol\">$2</p>
+#</body>
+#</html>" > "$volume_file"
+
+    ## append to toc.ncx
+    #if [ $1 -gt 1 ]; then
+        #echo "    </navPoint>" >> "${ncx_file}"
+    #fi
+    #echo "    <navPoint id=\"volume$1\" playOrder=\"${toc_order}\">
+#<navLabel><text>第${zh_seq}卷 $2</text></navLabel>
+#<content src=\"html/volume$1.html\"/>" >> "${ncx_file}"
+    #let toc_order++
+
+    ## append to content.opf
+    #gsed -i -e "/<spine.*>/i \ \ \ \ <item id=\"volume$1\" href=\"html/volume$1.html\" media-type=\"application/xhtml+xml\"/>" "$opf_file"
+    #echo "    <itemref idref=\"volume$1\"/>" >> "$opf_file"
+#}
+
+add_chapter() {
+    if [[ $# -lt 3 ]]; then
+        error "add_chapter(): insufficient arguments"
+        return 1
     fi
+    local ln="$1"
+    local start="$2"
+    local end="$3"
+    local extra_matched=0
+
+    if [[ "$extra_chapter_match" ]]; then
+        local temp="$(gsed -n "$ln s/^\s*\(${extra_chapter_match}\)\s*$/\1/p" "${input}")"
+        if [[ "$temp" ]]; then
+            local chapter_name="$temp"
+            local extra_matched=1
+        fi
+    fi
+
+    if [[ -z "$chapter_name" ]]; then
+        zh_seq="$(num_to_zh "${chapter_seq}")"
+        let chapter_seq++
+        local chapter_name="第${zh_seq}章 $(gsed -n -e "$ln s/^\s*${chapter_pattern}\s*\(\S*\)\s*$/\1/p" "${input}")"
+    fi
+
+    local chapter_file="${html_dir}/chapter${chapter_count}.html"
+
+    touch "${chapter_file}"
 
     echo "<html xmlns=\"http://www.w3.org/1999/xhtml\" xml:lang=\"zh-CN\">
 <head>
@@ -382,7 +494,7 @@ add_chapter() {
 <h3>${chapter_name}</h3>" > "${chapter_file}"
 
     # match paragraph
-    gsed -n -e "$3,$4 s/^\s*\(\S*\)\s*$/<p>\1<\/p>/p" "$input" >> "${chapter_file}"
+    gsed -n -e "${start},${end} s/^\s*\(\S*\)\s*$/<p>\1<\/p>/p" "$input" >> "${chapter_file}"
 
     echo '</div>
 </body>
@@ -391,52 +503,120 @@ add_chapter() {
     echo "${chapter_name}"
 
     # append to toc.ncx
-    echo "  <navPoint id=\"chapter$1\" playOrder=\"${toc_order}\">
-    <navLabel><text>${chapter_name}</text></navLabel>
-    <content src=\"html/chapter$1.html\"/>
-  </navPoint>" >> "$ncx_file"
+    echo "      <navPoint id=\"chapter${chapter_count}\" playOrder=\"${toc_order}\">
+        <navLabel><text>${chapter_name}</text></navLabel>
+        <content src=\"html/chapter${chapter_count}.html\"/>
+      </navPoint>" >> "$ncx_file"
     let toc_order++
 
     # append to content.opf
-    gsed -i -e "/<spine.*>/i \ \ \ \ <item id=\"chapter$1\" href=\"html/chapter$1.html\" media-type=\"application/xhtml+xml\"/>" "${opf_file}"
-    echo "    <itemref idref=\"chapter$1\" linear=\"yes\"/>" >> "${opf_file}"
+    gsed -i -e "/<spine.*>/i \ \ \ \ <item id=\"chapter${chapter_count}\" href=\"html/chapter${chapter_count}.html\" media-type=\"application/xhtml+xml\"/>" "${opf_file}"
+    echo "    <itemref idref=\"chapter${chapter_count}\" linear=\"yes\"/>" >> "${opf_file}"
+
+    let chapter_count++
+    return 0
 }
 
+#add_chapter1() {
+    #chapter_file="${html_dir}/chapter$1.html"
+    #touch "$chapter_file"
+    #zh_seq=$(num_to_zh $1)
+
+    #if [ $no_chapter_seq -eq 0 ]; then
+        #chapter_name="第${zh_seq}章 $2"
+    #else chapter_name="$2"
+    #fi
+
+    #echo "<html xmlns=\"http://www.w3.org/1999/xhtml\" xml:lang=\"zh-CN\">
+#<head>
+#<meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\" />
+#<link rel=\"stylesheet\" type=\"text/css\" href=\"../css/main.css\"/>
+#<title>${chapter_name}</title>
+#</head>
+#<body>
+#<div>
+#<h3>${chapter_name}</h3>" > "${chapter_file}"
+
+    ## match paragraph
+    #gsed -n -e "$3,$4 s/^\s*\(\S*\)\s*$/<p>\1<\/p>/p" "$input" >> "${chapter_file}"
+
+    #echo '</div>
+#</body>
+#</html>' >> "$chapter_file"
+
+    #echo "${chapter_name}"
+
+    ## append to toc.ncx
+    #echo "  <navPoint id=\"chapter$1\" playOrder=\"${toc_order}\">
+    #<navLabel><text>${chapter_name}</text></navLabel>
+    #<content src=\"html/chapter$1.html\"/>
+  #</navPoint>" >> "$ncx_file"
+    #let toc_order++
+
+    ## append to content.opf
+    #gsed -i -e "/<spine.*>/i \ \ \ \ <item id=\"chapter$1\" href=\"html/chapter$1.html\" media-type=\"application/xhtml+xml\"/>" "${opf_file}"
+    #echo "    <itemref idref=\"chapter$1\" linear=\"yes\"/>" >> "${opf_file}"
+#}
+
+
 collect_volume_chapters() {
-    volumes=(0)
-    volumes+=( $(cat -n "$input" | gsed -n -e "s/\s*\([0-9]\+\)\s*${volume_pattern}.*/\1/p") )
-    debug "volume line number collected"
-    chapters=( $(cat -n "$input" | gsed -n -e "s/\s*\([0-9]\+\)\s*${chapter_pattern}.*/\1/p") )
-    debug "chapter line number collected"
+    if [[ "${extra_volume_match}" ]]; then
+        local volumes=( $(cat -n "$input" | gsed -n -e "s/\s*\([0-9]\+\)\s*${volume_pattern}.*/\1/p" -e "s/^\s*\([0-9]\+\)\s*\(${extra_volume_match}\)\s*$/\1/p") )
+    else 
+        local volumes=( $(cat -n "$input" | gsed -n -e "s/\s*\([0-9]\+\)\s*${volume_pattern}.*/\1/p") )
+    fi
+    total_volumes=${#volumes[@]}
+    debug "${total_volumes} volume line number collected"
+    #local volumes=( $(cat -n "$input" | gsed -n -e "s/\s*\([0-9]\+\)\s*${volume_pattern}.*/\1/p") )
+    #debug "${#volumes[@]} volume line number collected"
+
+    if [[ "${extra_chapter_match}" ]]; then
+        local chapters=( $(cat -n "$input" | gsed -n -e "s/\s*\([0-9]\+\)\s*${chapter_pattern}.*/\1/p" -e "s/^\s*\([0-9]\+\)\s*${extra_chapter_match}\s*$/\1/p") )
+    else 
+        local chapters=( $(cat -n "$input" | gsed -n -e "s/\s*\([0-9]\+\)\s*${chapter_pattern}.*/\1/p") )
+    fi
+    total_chapters=${#chapters[@]}
+    debug "${total_chapters} chapter line number collected"
 
     total_lines=$(wc -l "$input" | gsed -n "s/ *\([0-9]*\).*/\1/p")
     volumes+=($total_lines)
     chapters+=($(expr $total_lines + 1))
     
-    volume_seq=1
-    chapter_seq=1
+    #volume_seq=1
+    #chapter_seq=1
+    local volume_index=0
 
     for i in $(seq 0 $(expr ${#chapters[@]} - 2)); do
-        start=$(expr ${chapters[$i]} + 1)
-        end=$(expr ${chapters[$(expr $i + 1)]} - 1)
+        local start=$(expr ${chapters[$i]} + 1)
+        local end=$(expr ${chapters[$(expr $i + 1)]} - 1)
 
-        if [[ $start -gt ${volumes[$volume_seq]} ]]; then
-            volume_name="$(sed -n -e "${volumes[$volume_seq]} s/ *${volume_pattern} \(\S*\)/\1/p" "${input}")"
-            debug "Detect volume '第${volume_seq}卷 ${volume_name}'"
-            add_volume "$volume_seq" "$volume_name"
-            let volume_seq++
+        if [[ $start -gt ${volumes[$volume_index]} ]]; then
+            add_volume "${volumes[$volume_index]}"
+            if [[ $? -eq 1 ]]; then
+                error "add_volume error"
+                return 1
+            fi
+            let volume_index++
+            #volume_name="$(sed -n -e "${volumes[$volume_seq]} s/ *${volume_pattern} \(\S*\)/\1/p" "${input}")"
+            #debug "Detect volume '第${volume_seq}卷 ${volume_name}'"
+            #add_volume "$volume_seq" "$volume_name"
+            #let volume_seq++
         fi
 
-        chapter_name="$(sed -n -e "${chapters[$i]} s/ *${chapter_pattern} \(\S*\)/\1/p" "$input")"
-        debug "Detect chapter '第${chapter_seq}章 $chapter_name $start-$end'"
-        add_chapter "$chapter_seq" "$chapter_name" "$start" "$end"
-        let chapter_seq++
+        #chapter_name="$(sed -n -e "${chapters[$i]} s/ *${chapter_pattern} \(\S*\)/\1/p" "$input")"
+        #debug "Detect chapter '第${chapter_seq}章 $chapter_name $start-$end'"
+        #add_chapter1 "$chapter_seq" "$chapter_name" "$start" "$end"
+        add_chapter "${chapters[$i]}" "$start" "$end"
+        if [[ $? -eq 1 ]]; then
+            error "Add chapter error"
+            return 1
+        fi
     done
 }
 
 finish() {
     # finish toc.ncx
-    if [[ ${#volumes[@]} -gt 2 ]]; then
+    if [[ ${total_volumes} -gt 0 ]]; then
         echo '</navPoint>' >> "$ncx_file"
     fi
     echo '</navMap>
