@@ -44,7 +44,7 @@ server {
 接下来在nginx配置文件中添加https的server，这个比较复杂，这里给出我的：
 
 ```nginx
-    server {
+ server {
 	  listen 443 ssl;
 	  listen [::]:443 ssl;
 
@@ -127,7 +127,7 @@ location /ray { #路径可以自己定义
                 "clients": [
                     {
                         "id": "...",
-                        "alterId": 64
+                        "alterId": 0
                     }
                 ]
             },

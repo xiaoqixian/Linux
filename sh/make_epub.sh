@@ -15,6 +15,7 @@ warn() {
 # globals
 no_chapter_seq=0
 toc_order=1
+zip_book=0
 readonly volume_pattern='第[零一二两三四五六七八九十百千万0-9\.]\{1,4\}卷'
 readonly chapter_pattern='第[零一二两三四五六七八九十百千万0-9]\{1,7\}章'
 
@@ -27,6 +28,8 @@ volume_count=1
 
 total_volumes=0
 total_chapters=0
+
+min_chapter_length=50
 
 declare -A -r zh_nums=(
     ["1"]="一"
@@ -49,20 +52,50 @@ declare -A -r units=(
 )
 
 check_chapters() {
-    debug "extra_chapter_match: ${extra_chapter_match}"
     if [[ "$extra_chapter_match" ]]; then
-        cat -n "$1" | gsed -n -e "s/^\s*\([0-9]\+\)\s*\(${chapter_pattern}.*\)/\1 \2/p" -e "s/^\s*\([0-9]\+\)\s*\(${extra_chapter_match}\)\s*$/\1 \2/p"
+        gsed -n -e "s/^\s*\(${chapter_pattern}.*\)/\1/p" -e "s/\(${extra_chapter_match}\)/\1/p" "$1"
     else 
         cat -n "$1" | gsed -n -e "s/^\s*\([0-9]\+\)\s*\(${chapter_pattern}.*\)/\1 \2/p"
     fi
+
+    local chapter_ln=( $(gsed -n -e "/^\s*${chapter_pattern}/=" "$1") )
+    local total_lines=${#chapter_ln[@]}
+    chapter_ln+=( $(wc -l "$1" | gsed -n "s/ *\([0-9]*\).*/\1/p") )
+    local i=0
+    while [[ $i -lt $total_lines ]]; do
+        local a=${chapter_ln[$i]}
+        let i++
+        local b=${chapter_ln[$i]}
+        local diff=`expr $b - $a`
+        if [[ $diff -lt $min_chapter_length ]]; then
+            warn "Bad chapter $a $(gsed -n -e "$a p" "$1") [$diff]"
+        fi
+    done
 }
 check_volumes() {
-    debug "extra_volume_match: ${extra_volume_match}"
     if [[ "$extra_volume_match" ]]; then
-        cat -n "$1" | gsed -n -e "s/^\s*\([0-9]\+\)\s*\(${volume_pattern}.*\)/\1 \2/p" -e "s/^\s*\([0-9]\+\)\s*\(${extra_volume_match}\)\s*$/\1 \2/p"
+        gsed -n -e "s/^\s*\(${volume_pattern}.*\)/\1/p" -e "s/\(${extra_volume_match}\)/\1/p" "$1"
     else 
         cat -n "$1" | gsed -n -e "s/^\s*\([0-9]\+\)\s*\(${volume_pattern}.*\)/\1 \2/p"
     fi
+}
+
+compare_chapters() {
+    local website="https://www.69shuba.com/book/$2/"
+    local website_match=( $(gsed -n -e '/^\s*<li data-num=.*/=' temp) )
+    local txt_match=( $(gsed -n -e "/^\s*${chapter_pattern}/=" "$1") )
+    
+    local a=${#website_match[@]}
+    local b=${#txt_match[@]}
+
+    if [[ $a -ge $b ]]; then
+        local loop=$b
+    else local loop=$a
+    fi
+
+    for i in $(seq 0 `expr $loop - 1`); do
+        echo -e "$(gsed -n -e "${txt_match[$i]} p" "$1")\t $(gsed -n -e "${website_match[$i]} s/^\s*<li data-num=.*>\(.*\)<\/a>.*/\1/p" temp)"
+    done
 }
 
 check_args() {
@@ -71,11 +104,15 @@ check_args() {
             -a) author="$2"; shift 2;;
             -i) input="$2"; shift 2;;
             -o) out="$2"; shift 2;;
-            -c) cover="$2"; shift 2;;
+            -s) cover="$2"; shift 2;;
+            -c) slim="$2"; shift 2;;
             -l) lang="$2"; shift 2;;
+            -z) zip_book=1; shift;;
             --no-chapter-seq) no_chapter_seq=1; shift;;
             --extra-volume-match) extra_volume_match="$2"; shift 2;;
             --extra-chapter-match) extra_chapter_match="$2"; shift 2;;
+            --min-chapter-length) min_chapter_length="$2"; shift 2;;
+            --compare-chapters) compare_chapters "$2" "$3"; exit 0;;
             --check-chapters) check_chapters "$2"; exit 0;;
             --check-volumes) check_volumes "$2"; exit 0;;
             *) error "Unknow option '$1'";
@@ -157,6 +194,11 @@ init() {
     ncx_file="$out.epub/OPS/toc.ncx"
     opf_file="$out.epub/OPS/content.opf"
     html_dir="$out.epub/OPS/html"
+
+    if [[ -z "$cover" || ! -f "$cover" ]]; then
+        cover="$slim"
+    else cp "$slim" "$out.epub/iTunesArtwork"
+    fi
 
     # copy cover image to images
     valid_extensions=("jpg" "jpeg" "png" "webp")
@@ -363,7 +405,7 @@ add_volume() {
     local extra_matched=0
 
     if [[ "$extra_volume_match" ]]; then
-        local temp="$(gsed -n "$ln s/^\s*\(${extra_volume_match}\)\s*$/\1/p" "${input}")"
+        local temp="$(gsed -n "$ln s/\(${extra_volume_match}\)/\1/p" "${input}")"
         if [[ "$temp" ]]; then
             local volume_name="${temp}"
             local volume_header="  <h1 class=\"vol\" title=\"${temp}\">${temp}</h1>"
@@ -424,36 +466,6 @@ ${volume_header}
     return 0
 }
 
-#add_volume1() {
-    #volume_file="${html_dir}/volume$1.html"
-    #touch "$volume_file"
-    #zh_seq=$(num_to_zh $1)
-
-    #echo "<?xml version=\"1.0\" encoding=\"utf-8\" standalone=\"no\"?>
-#<html xmlns=\"http://www.w3.org/1999/xhtml\" xml:lang=\"zh-CN\">
-#<head>
-  #<title></title>
-  #<link href=\"../css/main.css\" rel=\"stylesheet\" type=\"text/css\" />
-#</head>
-#<body class=\"vol\">
-  #<h1 class=\"vol\" title=\"第${zh_seq}卷 $2\">第${zh_seq}卷</h1>
-  #<p class=\"vol\">$2</p>
-#</body>
-#</html>" > "$volume_file"
-
-    ## append to toc.ncx
-    #if [ $1 -gt 1 ]; then
-        #echo "    </navPoint>" >> "${ncx_file}"
-    #fi
-    #echo "    <navPoint id=\"volume$1\" playOrder=\"${toc_order}\">
-#<navLabel><text>第${zh_seq}卷 $2</text></navLabel>
-#<content src=\"html/volume$1.html\"/>" >> "${ncx_file}"
-    #let toc_order++
-
-    ## append to content.opf
-    #gsed -i -e "/<spine.*>/i \ \ \ \ <item id=\"volume$1\" href=\"html/volume$1.html\" media-type=\"application/xhtml+xml\"/>" "$opf_file"
-    #echo "    <itemref idref=\"volume$1\"/>" >> "$opf_file"
-#}
 
 add_chapter() {
     if [[ $# -lt 3 ]]; then
@@ -466,7 +478,7 @@ add_chapter() {
     local extra_matched=0
 
     if [[ "$extra_chapter_match" ]]; then
-        local temp="$(gsed -n "$ln s/^\s*\(${extra_chapter_match}\)\s*$/\1/p" "${input}")"
+        local temp="$(gsed -n "$ln s/\(${extra_chapter_match}\)/\1/p" "${input}")"
         if [[ "$temp" ]]; then
             local chapter_name="$temp"
             local extra_matched=1
@@ -494,7 +506,8 @@ add_chapter() {
 <h3>${chapter_name}</h3>" > "${chapter_file}"
 
     # match paragraph
-    gsed -n -e "${start},${end} s/^\s*\(\S*\)\s*$/<p>\1<\/p>/p" "$input" >> "${chapter_file}"
+    #gsed -n -e "${start},${end} s/^\s*\(\S*\)\s*$/<p>\1<\/p>/p" "$input" >> "${chapter_file}"
+    gsed -n -e "${start},${end} s/^[\s  ]*\(.*\)/<p>\1<\/p>/p" "$input" >> "${chapter_file}"
 
     echo '</div>
 </body>
@@ -517,63 +530,27 @@ add_chapter() {
     return 0
 }
 
-#add_chapter1() {
-    #chapter_file="${html_dir}/chapter$1.html"
-    #touch "$chapter_file"
-    #zh_seq=$(num_to_zh $1)
-
-    #if [ $no_chapter_seq -eq 0 ]; then
-        #chapter_name="第${zh_seq}章 $2"
-    #else chapter_name="$2"
-    #fi
-
-    #echo "<html xmlns=\"http://www.w3.org/1999/xhtml\" xml:lang=\"zh-CN\">
-#<head>
-#<meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\" />
-#<link rel=\"stylesheet\" type=\"text/css\" href=\"../css/main.css\"/>
-#<title>${chapter_name}</title>
-#</head>
-#<body>
-#<div>
-#<h3>${chapter_name}</h3>" > "${chapter_file}"
-
-    ## match paragraph
-    #gsed -n -e "$3,$4 s/^\s*\(\S*\)\s*$/<p>\1<\/p>/p" "$input" >> "${chapter_file}"
-
-    #echo '</div>
-#</body>
-#</html>' >> "$chapter_file"
-
-    #echo "${chapter_name}"
-
-    ## append to toc.ncx
-    #echo "  <navPoint id=\"chapter$1\" playOrder=\"${toc_order}\">
-    #<navLabel><text>${chapter_name}</text></navLabel>
-    #<content src=\"html/chapter$1.html\"/>
-  #</navPoint>" >> "$ncx_file"
-    #let toc_order++
-
-    ## append to content.opf
-    #gsed -i -e "/<spine.*>/i \ \ \ \ <item id=\"chapter$1\" href=\"html/chapter$1.html\" media-type=\"application/xhtml+xml\"/>" "${opf_file}"
-    #echo "    <itemref idref=\"chapter$1\" linear=\"yes\"/>" >> "${opf_file}"
-#}
-
 
 collect_volume_chapters() {
     if [[ "${extra_volume_match}" ]]; then
-        local volumes=( $(cat -n "$input" | gsed -n -e "s/\s*\([0-9]\+\)\s*${volume_pattern}.*/\1/p" -e "s/^\s*\([0-9]\+\)\s*\(${extra_volume_match}\)\s*$/\1/p") )
+        #local volumes=( $(cat -n "$input" | gsed -n -e "s/\s*\([0-9]\+\)\s*${volume_pattern}.*/\1/p" -e "s/^\s*\([0-9]\+\)\s*\(${extra_volume_match}\)\s*$/\1/p") )
+        local volumes=( $(gsed -n -e "/^\s*${volume_pattern}/=" -e "/${extra_volume_match}/=" "${input}") )
     else 
-        local volumes=( $(cat -n "$input" | gsed -n -e "s/\s*\([0-9]\+\)\s*${volume_pattern}.*/\1/p") )
+        #local volumes=( $(cat -n "$input" | gsed -n -e "s/\s*\([0-9]\+\)\s*${volume_pattern}.*/\1/p") )
+        local volumes=( $(gsed -n -e "/^\s*${volume_pattern}/=" "${input}") )
     fi
+    debug ${volumes[@]}
     total_volumes=${#volumes[@]}
     debug "${total_volumes} volume line number collected"
     #local volumes=( $(cat -n "$input" | gsed -n -e "s/\s*\([0-9]\+\)\s*${volume_pattern}.*/\1/p") )
     #debug "${#volumes[@]} volume line number collected"
 
     if [[ "${extra_chapter_match}" ]]; then
-        local chapters=( $(cat -n "$input" | gsed -n -e "s/\s*\([0-9]\+\)\s*${chapter_pattern}.*/\1/p" -e "s/^\s*\([0-9]\+\)\s*${extra_chapter_match}\s*$/\1/p") )
+        #local chapters=( $(cat -n "$input" | gsed -n -e "s/\s*\([0-9]\+\)\s*${chapter_pattern}.*/\1/p" -e "s/^\s*\([0-9]\+\)\s*${extra_chapter_match}\s*$/\1/p") )
+        local chapters=( $(gsed -n -e "/^\s*${chapter_pattern}/=" -e "/${extra_chapter_match}/=" "${input}") )
     else 
-        local chapters=( $(cat -n "$input" | gsed -n -e "s/\s*\([0-9]\+\)\s*${chapter_pattern}.*/\1/p") )
+        #local chapters=( $(cat -n "$input" | gsed -n -e "s/\s*\([0-9]\+\)\s*${chapter_pattern}.*/\1/p") )
+        local chapters=( $(gsed -n -e "/^\s*${chapter_pattern}/=" "${input}") )
     fi
     total_chapters=${#chapters[@]}
     debug "${total_chapters} chapter line number collected"
@@ -597,15 +574,8 @@ collect_volume_chapters() {
                 return 1
             fi
             let volume_index++
-            #volume_name="$(sed -n -e "${volumes[$volume_seq]} s/ *${volume_pattern} \(\S*\)/\1/p" "${input}")"
-            #debug "Detect volume '第${volume_seq}卷 ${volume_name}'"
-            #add_volume "$volume_seq" "$volume_name"
-            #let volume_seq++
         fi
 
-        #chapter_name="$(sed -n -e "${chapters[$i]} s/ *${chapter_pattern} \(\S*\)/\1/p" "$input")"
-        #debug "Detect chapter '第${chapter_seq}章 $chapter_name $start-$end'"
-        #add_chapter1 "$chapter_seq" "$chapter_name" "$start" "$end"
         add_chapter "${chapters[$i]}" "$start" "$end"
         if [[ $? -eq 1 ]]; then
             error "Add chapter error"
@@ -647,3 +617,12 @@ if [ $? -eq 1 ]; then
     exit 1; 
 fi
 finish
+
+if [[ $zip_book -eq 1 ]]; then
+    cd "${out}.epub"
+    zip -r "${out}.zip" * > /dev/null
+    cd ..
+    mv "${out}.epub/${out}.zip" ./
+    rm -rf "${out}.epub"
+    mv "${out}.zip" "${out}.epub"
+fi
