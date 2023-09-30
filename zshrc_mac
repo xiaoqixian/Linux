@@ -115,7 +115,8 @@ export PYTHONPATH="/Users/lunar/Library/Python/3.8/lib/python/site-packages"
 export RUST="/Users/lunar/clones/rust/library"
 #export FZF_DEFAULT_OPTS="--height 40% --layout=reverse --preview '(highlight -0 ansi {} || cat {}) 2> /dev/null | head -500'"
 
-alias vpn="~/v2ray-macos-64/v2ray -c ~/v2ray-macos-64/config_bkp.json > /dev/null 2>&1 &"
+#alias vpn="nohup ~/v2ray-macos-64/v2ray -c ~/v2ray-macos-64/config_bkp.json > /dev/null 2>&1 &"
+alias vpn="sh $HOME/linux/sh/v2ray_config.sh"
 alias pub="python3 ~/python/code/cnblog_auto_publish.py"
 alias sp="ps -A | grep"
 alias gcom="git add . && git commit -m"
@@ -128,7 +129,7 @@ alias gcc="gcc -std=c11"
 alias rustc="rustc --edition=2021"
 alias std="cd $RUST/std/src && vim lib.rs"
 alias core="cd $RUST/core/src && vim lib.rs"
-alias kaf="~/Downloads/kaf-cli_v1.2.5_darwin_amd64/kaf-cli"
+alias kaf="~/Library/kaf-cli_v1.2.5_darwin_amd64/kaf-cli"
 alias vim="/usr/local/bin/vim"
 alias tre="trans -t zh"
 export PATH="/usr/local/opt/openssl@3/bin:$PATH"
@@ -136,4 +137,54 @@ export PATH="/usr/local/opt/openssl@3/bin:$PATH"
 
 function reman {
     LESS="+/^\\s+$2" man "$1"
+}
+
+function fs {
+    du -h -s "$1" | cut -f1
+}
+alias sh="/usr/local/Cellar/bash/5.2.15/bin/bash"
+#alias rm="sh $HOME/linux/sh/rm_mac.sh"
+alias ndl="netease-dl -o ~/music/netease/"
+alias sea="brew search"
+alias down="brew install"
+export arch=/Users/lunar/OrbStack/arch/home/lunar
+
+function ghc {
+    git clone https://github.com/$1/$2.git
+}
+function ghc1 {
+    git clone https://github.com/$1/$2.git --depth=1
+}
+function catline {
+    cat -n $1 | gsed -n "/\s$2\s/p"
+}
+alias me="sh $HOME/Books/me.sh"
+
+function ndll {
+    if [[ $# -gt 0 ]]; then
+        id=$(( echo $1 | gsed -n -e "s/.*?id\\=\([0-9]\+\).*/\1/p" ))
+    else id=$(( pbpaste | gsed -n -e "s/.*?id\\=\([0-9]\+\).*/\1/p" ))
+    fi
+    netease-dl -o ~/Music/netease song -i $id
+}
+[ -f /usr/local/etc/profile.d/autojump.sh ] && . /usr/local/etc/profile.d/autojump.sh
+alias imgcat="sh $HOME/linux/sh/imgcat.sh"
+
+function ytm {
+    if [[ -f "$HOME/Music/netease/$1.mp3" ]]; then
+        echo "file '$HOME/Music/netease/$1.mp3' exists"
+        exit 0
+    fi
+    youtube-dl -x --audio-format mp3 -o $HOME/Music/netease/$1.mp3 $2
+}
+
+# alias rm to mv files/dirs to .Trash
+trash="$HOME/.Trash"
+function rm {
+    for target in $@; do
+        if [[ -f $target || -d $target ]]; then
+            mv $target $trash
+        else echo "'$target' not exists"
+        fi
+    done
 }

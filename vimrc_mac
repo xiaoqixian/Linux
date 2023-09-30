@@ -170,6 +170,8 @@ Plug 'neoclide/coc.nvim', {'branch': 'release'}
 Plug 'chrisbra/Colorizer'
 Plug 'wolandark/browser-sync'
 Plug 'kristijanhusak/vim-carbon-now-sh'
+Plug 'junegunn/fzf', { 'do': { -> fzf#install() } }
+Plug 'junegunn/fzf.vim'
 
 call plug#end()
 
