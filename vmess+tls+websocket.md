@@ -27,7 +27,7 @@ server {
     listen 80;
     server_name domain.name;
    	location / {
-    	/usr/share/nginx/html
+    	root /usr/share/nginx/html;
 	}
 }
 ```

@@ -91,7 +91,7 @@ set_direct() {
 
 set_routing() {
     debug "setting routing mode"
-    edit_config '[{"type": "field", "outboundTag": "directTag", "domain": ["geosite:cn"]}, {"type": "field", "outboundTag": "directTag", "ip": ["geoip:cn", "geoip:private"]}, {"type": "field", "outboundTag": "proxyTag", "network": "udp, tcp"}]' "routing.rules"
+    edit_config '[{"type": "field", "outboundTag": "directTag", "domain": ["geosite:cn", "docs.rs", "en.cppreference.com", "speedhunters.com", "crates.io"]}, {"type": "field", "outboundTag": "directTag", "ip": ["geoip:cn", "geoip:private"]}, {"type": "field", "outboundTag": "proxyTag", "network": "udp, tcp"}]' "routing.rules"
     #jj -i "${CONFIG}" -o "${CONFIG}" -v '[{"type": "field", "outboundTag": "directTag", "domain": ["geosite:cn"]}, {"type": "field", "outboundTag": "directTag", "ip": ["geoip:cn", "geoip:private"]}, {"type": "field", "outboundTag": "proxyTag", "network": "udp, tcp"}]' -r routing.rules
 }
 

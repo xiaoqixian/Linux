@@ -109,10 +109,11 @@ export inc="/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include"
 export FZF_DEFAULT_COMMAND="fd --exclude={.git,node_modules,build} --type f"
 export FZF_DEFAULT_OPTS="--ansi --preview-window 'right:60%' --layout reverse --margin=1,4 --preview 'bat --color=always --style=header,grid --line-range :300 {}'"
 export BAT_THEME="Dracula"
-export PATH="/Users/lunar/.cargo/bin:$PATH"
+export PATH="/usr/local/Cellar/rust/1.71.0/bin:$PATH"
 export PATH="/Users/lunar/Library/Python/3.8/bin:$PATH"
 export PYTHONPATH="/Users/lunar/Library/Python/3.8/lib/python/site-packages"
 export RUST="/Users/lunar/clones/rust/library"
+export PATH="/usr/local/opt/llvm@15/bin:$PATH"
 #export FZF_DEFAULT_OPTS="--height 40% --layout=reverse --preview '(highlight -0 ansi {} || cat {}) 2> /dev/null | head -500'"
 
 #alias vpn="nohup ~/v2ray-macos-64/v2ray -c ~/v2ray-macos-64/config_bkp.json > /dev/null 2>&1 &"
@@ -135,13 +136,6 @@ alias tre="trans -t zh"
 export PATH="/usr/local/opt/openssl@3/bin:$PATH"
 #export ALL_PROXY=http://127.0.0.1:7890
 
-function reman {
-    LESS="+/^\\s+$2" man "$1"
-}
-
-function fs {
-    du -h -s "$1" | cut -f1
-}
 alias sh="/usr/local/Cellar/bash/5.2.15/bin/bash"
 #alias rm="sh $HOME/linux/sh/rm_mac.sh"
 alias ndl="netease-dl -o ~/music/netease/"
@@ -149,12 +143,22 @@ alias sea="brew search"
 alias down="brew install"
 export arch=/Users/lunar/OrbStack/arch/home/lunar
 
-function ghc {
-    git clone https://github.com/$1/$2.git
+# ======================================================
+# custom function zone
+# ======================================================
+
+function debug {
+    echo -e "\033[1;32m$@\033[0m"
 }
-function ghc1 {
-    git clone https://github.com/$1/$2.git --depth=1
+
+function reman {
+    LESS="+/^\\s+$2" man "$1"
 }
+
+function fs {
+    du -h -s "$1" | cut -f1
+}
+
 function catline {
     cat -n $1 | gsed -n "/\s$2\s/p"
 }
@@ -178,9 +182,16 @@ function ytm {
     youtube-dl -x --audio-format mp3 -o $HOME/Music/netease/$1.mp3 $2
 }
 
+function ghl {
+    git clone https://github.com/$1/$2.git ~/clones/$2
+}
+function ghl1 {
+    git clone https://github.com/$1/$2.git ~/clones/$2 --depth=1
+}
+
 # alias rm to mv files/dirs to .Trash
 trash="$HOME/.Trash"
-function rm {
+function rm2mv {
     for target in $@; do
         if [[ -f $target || -d $target ]]; then
             mv $target $trash
@@ -188,3 +199,64 @@ function rm {
         fi
     done
 }
+
+# add subtitles for movie with ffmpeg
+function addsub {
+    ffmpeg -i $1.mp4 -vf "subtitles=$1.srt" -y ${1}sub.mp4
+}
+
+# convert avif file to jpeg under a directory
+# all options have to be set before targets
+# set -r option to convert recursively
+# set -k option to keep original file, defaultly not keeping.
+function avif2jpeg {
+    while [[ $# -gt 0 ]]; do
+        case $1 in
+            -r) recursive=1;
+                shift;;
+            -k) keep=1;
+                shift;;
+            *) break;;
+        esac
+    done
+    
+    for target in $@; do
+        if [[ $target == "." ]]; then
+            for subtarget in ./*; do
+                avif2jpeg $subtarget
+            done
+        elif [[ -f $target ]]; then
+            if [[ $target =~ ".*\.avif$" ]]; then
+                ffmpeg -i "$target" "${target%.*}.jpeg" > /dev/null 2>&1
+                if [[ $keep -ne 1 ]]; then
+                    rm $target
+                fi
+            fi
+        elif [[ -d $target ]]; then
+            echo "$target is a dir"
+            items=($(ls "$target"))
+            if [[ $recursive -eq 1 && ${#items[@]} -gt 0 ]]; then
+                for subtarget in $target/*; do
+                    avif2jpeg $subtarget
+                done
+                echo -e "\033[0;34m$target\033[0m converted"
+            fi
+        else echo "'$target' not exists"
+        fi
+    done
+}
+alias ae="~/pros/audio-editor/target/debug/audio-editor"
+
+function lst {
+    if [[ $# -eq 0 ]]; then
+        ls -t
+    else
+        ls -t | head -n $1
+    fi
+}
+export PATH="/usr/local/opt/ghc/bin:$PATH"
+export LDFLAGS="-L/usr/local/opt/ghc/lib"
+alias ls="exa"
+
+export CLASSPATH="/Users/lunar/.m2/repository:$CLASSPATH"
+export HOMEBREW_BOTTLE_DOMAIN=https://mirrors.aliyun.com/homebrew/homebrew-bottles

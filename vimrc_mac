@@ -12,6 +12,7 @@ highlight Search ctermfg=116 ctermbg=211
 
 hi! link CocFloating PMenu
 hi! link CocMenuSel PMenuSel
+hi! link CocInlayHint Comment
 "hi! link CocMenuSel PmenuSel
 "hi! link CocPumMenu Pmenu
 "hi! link CocPumVirtualText Comment
@@ -19,6 +20,8 @@ hi! link CocMenuSel PMenuSel
 hi TabLineFill ctermfg=none ctermbg=none gui=none cterm=none
 hi TabLineSel ctermfg=225 ctermbg=none
 hi TabLine ctermfg=255 ctermbg=none cterm=none
+
+hi! SignColumn ctermbg=none
 
 syntax enable
 
@@ -63,7 +66,7 @@ set tabstop=4
 set completeopt-=preview
 
 "auto complete html tags
-autocmd BufRead *.css *.html :ColorHighlight<CR>
+"autocmd BufRead *.css *.html :ColorHighlight<CR>
 autocmd FileType html setlocal shiftwidth=2 tabstop=2 expandtab
 autocmd FileType css setlocal shiftwidth=2 tabstop=2 expandtab
 autocmd FileType json setlocal shiftwidth=2 tabstop=2 expandtab
@@ -72,6 +75,9 @@ autocmd FileType vim setlocal shiftwidth=2 tabstop=2 expandtab
 
 "auto set header for some filetypes
 autocmd BufNewFile *.sh,*.cpp,*.c,*.rs,*.java,*.py call SetHeader()
+
+autocmd FileType rust let b:AutoPairs = AutoPairsDefine({'\S<':'>'})
+autocmd FileType cpp let b:AutoPairs = AutoPairsDefine({'[a-z]<':'>', 'template <':'>'})
 
 function! SetHeader()
     let extension = expand("%:e")
@@ -153,7 +159,7 @@ Plug 'vim-airline/vim-airline'
 Plug 'vim-airline/vim-airline-themes'
 Plug 'tpope/vim-surround'
 Plug 'rust-lang/rust.vim'
-Plug 'scrooloose/syntastic'
+"Plug 'scrooloose/syntastic'
 Plug 'scrooloose/nerdcommenter'
 "Plug 'valloric/youcompleteme'
 Plug 'preservim/nerdtree'
@@ -172,6 +178,7 @@ Plug 'wolandark/browser-sync'
 Plug 'kristijanhusak/vim-carbon-now-sh'
 Plug 'junegunn/fzf', { 'do': { -> fzf#install() } }
 Plug 'junegunn/fzf.vim'
+Plug 'neovimhaskell/haskell-vim'
 
 call plug#end()
 
@@ -187,8 +194,8 @@ inoremap <silent><expr> <TAB>
             \ CheckBackSpace() ? "\<Tab>" :
             \ coc#refresh()
 inoremap <expr><S-TAB> coc#pum#visible() ? coc#pum#prev(1) : "\<C-h>"
-inoremap <silent><expr> <CR> coc#pum#visible() ? coc#pum#confirm()
-            \: "\<C-g>u\<CR>\<c-r>=coc#on_enter()\<CR>"
+
+inoremap <silent><expr> <CR> coc#pum#visible() ? coc#pum#confirm() : "\<C-g>u\<CR>\<c-r>=coc#on_enter()\<CR>"
 
 function! CheckBackSpace() abort
     let col = col('.') - 1
