@@ -1,0 +1,337 @@
+"meta settings
+filetype plugin indent on
+set number
+set relativenumber
+set backspace=indent,eol,start
+
+"highlight/color settings
+highlight PMenu ctermfg=225 ctermbg=60 guifg=black guibg=darkgrey
+highlight PMenuSel ctermfg=242 ctermbg=225 guifg=darkgrey guibg=black
+highlight Comment ctermfg=104 ctermbg=none
+highlight Search ctermfg=116 ctermbg=211
+
+hi! link CocFloating PMenu
+hi! link CocMenuSel PMenuSel
+hi! link CocInlayHint Comment
+"hi! link CocMenuSel PmenuSel
+"hi! link CocPumMenu Pmenu
+"hi! link CocPumVirtualText Comment
+
+hi TabLineFill ctermfg=none ctermbg=none gui=none cterm=none
+hi TabLineSel ctermfg=225 ctermbg=none
+hi TabLine ctermfg=255 ctermbg=none cterm=none
+
+hi! SignColumn ctermbg=none
+
+syntax enable
+
+let $LANG="en_US.UTF-8"
+
+set noerrorbells
+set novisualbell
+
+set lbr
+set tw=500 "set max text width
+
+"auto refresh when a file has been 
+"detected to have been changed outside
+set autoread
+
+"show the line and column number of the cursor position.
+set ruler
+
+"pair settings
+set mps+=<:> "pairs match hightlights
+
+"search settings
+set hlsearch
+set incsearch
+set ignorecase
+
+"indent settings
+set smartindent
+set wrap "wrap lines
+
+set guicursor=n-v-c-i:block
+set mouse=""
+
+" comment
+"set formatoptions-=cro "disable continuation of comments
+"au FileType cpp setlocal comments=s1:/*,m:\ ,ex-4:*/,://
+"set cinoptions=c4
+
+"tab settings
+set expandtab
+set smarttab
+set shiftwidth=4
+set tabstop=4
+
+set completeopt-=preview
+
+"abreviations
+iab #v #include <vector>
+iab #s #include <string>
+
+
+"auto complete html tags
+"autocmd BufRead *.css *.html :ColorHighlight<CR>
+autocmd FileType html setlocal shiftwidth=2 tabstop=2 expandtab
+autocmd FileType css setlocal shiftwidth=2 tabstop=2 expandtab
+autocmd FileType json setlocal shiftwidth=2 tabstop=2 expandtab
+autocmd FileType vue setlocal shiftwidth=2 tabstop=2 expandtab
+autocmd FileType vim setlocal shiftwidth=2 tabstop=2 expandtab
+autocmd FileType xml setlocal shiftwidth=2 tabstop=2 expandtab
+autocmd FileType sql setlocal shiftwidth=2 tabstop=2 expandtab
+
+"auto set header for some filetypes
+autocmd BufNewFile *.sh,*.cpp,*.c,*.rs,*.java,*.py,*.h,*.hpp call SetHeader()
+
+autocmd FileType rust let b:AutoPairs = AutoPairsDefine({'\S<':'>', '&\zs''': ''})
+autocmd FileType cpp let b:AutoPairs = AutoPairsDefine({'[a-z]<':'>', 'template <':'>'})
+
+function! SetHeader()
+  let extension = expand('%:e')
+  let comment_symbol = '//'
+  if extension == 'py' || extension == 'sh'
+      let comment_symbol = '#'
+  endif
+  call setline(1, comment_symbol.' Date: '.strftime('%a %b %d %X %Y'))
+  call append(line('.'), comment_symbol.' Mail: lunar_ubuntu@qq.com')
+  call append(line('.')+1, comment_symbol.' Author: https://github.com/xiaoqixian')
+  call append(line('.')+2, '')
+
+  if extension == 'h' || extension == 'hpp'
+    let basename = '_'.toupper(expand('%:t:r')).'_'
+    call append(line('$'), '#ifndef '.basename)
+    call append(line('$'), '#define '.basename)
+    call append(line('$'), '')
+    call append(line('$'), '')
+    call append(line('$'), '')
+    call append(line('$'), '#endif // '.basename)
+    norm! Gkk
+  else
+    norm! G
+  endif
+
+endfunction
+
+"mapping
+let mapleader = ","
+
+"normal mapping
+nmap <leader>w :w!<CR>
+nmap <leader>sf :source ~/.nvimrc<CR>
+
+"remapping actions for cursor moving between windows
+nmap K <C-w>k
+nmap J <C-w>j
+nmap L <C-w>l
+nmap H <C-w>h
+nnoremap <Space> <C-w>w
+
+"remove highligh
+nmap <leader>nh :nohl<CR>
+
+nnoremap <leader>< <C-w><
+nnoremap <leader>> <C-w>>
+nnoremap <leader>+ <C-w>+
+nnoremap <leader>- <C-w>-
+
+"map prev/next buffer
+nnoremap <leader>bb :bp<CR>
+nnoremap <leader>bn :bn<CR>
+
+"map Ctrl+A to select the whole file
+nnoremap <C-a> ggvG$
+
+"tab window mapping
+noremap <silent> <tab> :tabnext<CR>
+noremap <silent> <S-tab> :tabp<CR>
+map <leader>tc :tabclose<CR>
+map <leader>t<leader> :tabnew<CR>
+"make tab to shift width in visual mode
+vnoremap <tab> <S-.>
+
+"special mapping, replace [ to { and ] to } in the current line
+nmap <leader>zz :.s/\[/{/g<CR>:.s/\]/}/g<CR>:nohl<CR>
+
+"open .vimrc in split window
+nnoremap <leader>sv :sp ~/.nvimrc<CR>
+nnoremap <leader>vv :vs ~/.nvimrc<CR>
+
+"insert mapping
+inoremap jj <ESC>
+
+"visual mapping
+"yank into clipboard
+vnoremap yy "+y
+
+"complete mapping
+"optional for lite version that without any plugins
+"function! s:CheckBackSpace()
+	"let col = col('.') - 1
+	"return !col || getline('.')[col - 1] =~# '\s'
+"endfunction
+
+"inoremap <silent><expr> <TAB> <SID>CheckBackSpace() ? "\<TAB>" : "\<C-n>"
+
+"plugins management
+call plug#begin()
+
+Plug 'vim-python/python-syntax', {'for': 'python'}
+Plug 'uiiaoo/java-syntax.vim', {'for': 'java'}
+Plug 'kaarmu/typst.vim'
+Plug 'vim-airline/vim-airline'
+Plug 'vim-airline/vim-airline-themes'
+Plug 'tpope/vim-surround'
+Plug 'rust-lang/rust.vim', {'for': 'rust'}
+"Plug 'scrooloose/syntastic'
+Plug 'scrooloose/nerdcommenter'
+"Plug 'valloric/youcompleteme'
+Plug 'preservim/nerdtree', {'on': 'NERDTreeToggle'}
+Plug 'ryanoasis/vim-devicons'
+Plug 'tiagofumo/vim-nerdtree-syntax-highlight'
+Plug 'jiangmiao/auto-pairs'
+Plug 'voldikss/vim-floaterm'
+Plug 'octol/vim-cpp-enhanced-highlight', {'for':'cpp'}
+Plug 'cespare/vim-toml', {'for': 'toml'}
+"Plug 'sirver/ultisnips'
+Plug 'gko/vim-coloresque'
+Plug 'jlanzarotta/bufexplorer'
+Plug 'neoclide/coc.nvim', {'branch': 'release'}
+Plug 'chrisbra/Colorizer'
+Plug 'wolandark/browser-sync'
+Plug 'kristijanhusak/vim-carbon-now-sh'
+Plug 'junegunn/fzf', { 'do': { -> fzf#install() } }
+Plug 'junegunn/fzf.vim'
+Plug 'posva/vim-vue', {'for': 'vue'}
+Plug 'neovimhaskell/haskell-vim', {'for': 'haskell'}
+Plug 'othree/xml.vim', {'for': 'xml'}
+
+call plug#end()
+
+"vim airline theme
+let g:airline_theme = 'fruit_punch'
+
+"================================
+"           coc.nvim
+"================================
+"use tab for trigger completion
+inoremap <silent><expr> <TAB>
+            \ coc#pum#visible() ? coc#pum#next(1) :
+            \ CheckBackSpace() ? "\<Tab>" :
+            \ coc#refresh()
+inoremap <expr><S-TAB> coc#pum#visible() ? coc#pum#prev(1) : "\<C-h>"
+
+inoremap <silent><expr> <CR> coc#pum#visible() ? coc#pum#confirm() : "\<C-g>u\<CR>\<c-r>=coc#on_enter()\<CR>"
+
+function! CheckBackSpace() abort
+    let col = col('.') - 1
+    return !col || getline('.')[col - 1] =~# '\s'
+endfunction
+
+" Use `[g` and `]g` to navigate diagnostics
+" Use `:CocDiagnostics` to get all diagnostics of current buffer in location list
+nmap <silent> [g <Plug>(coc-diagnostic-prev)
+nmap <silent> ]g <Plug>(coc-diagnostic-next)
+
+"GoTo code navigation
+nmap <silent> gd <Plug>(coc-definition)
+nmap <silent> gy <Plug>(coc-type-definition)
+nmap <silent> gi <Plug>(coc-implementation)
+nmap <silent> gr <Plug>(coc-references)
+
+nnoremap <silent> M :call ShowDocumentation()<CR>
+function! ShowDocumentation()
+    if CocAction('hasProvider', 'hover')
+        call CocActionAsync('doHover')
+    else
+        call feedkeys('M', 'in')
+    endif
+endfunction
+
+"Format selected
+xmap <leader>f <Plug>(coc-format-selected)
+nmap <leader>f <Plug>(coc-format-selected)
+augroup mygroup
+    autocmd!
+    autocmd FileType typescript,json setl formatexpr=CocAction('formatSelected')
+    autocmd User CoCJumpPlaceholder call CocActionAsync('showSignatureHelp')
+augroup end
+
+"Apply the most preferred quickfix action to fix diagnostic on the current line
+nmap <leader>qf <Plug>(coc-fix-current)
+
+" Remap <C-f> and <C-b> to scroll float windows/popups
+if has('nvim-0.4.0') || has('patch-8.2.0750')
+  nnoremap <silent><nowait><expr> <C-f> coc#float#has_scroll() ? coc#float#scroll(1) : "\<C-f>"
+  nnoremap <silent><nowait><expr> <C-b> coc#float#has_scroll() ? coc#float#scroll(0) : "\<C-b>"
+  inoremap <silent><nowait><expr> <C-f> coc#float#has_scroll() ? "\<c-r>=coc#float#scroll(1)\<cr>" : "\<Right>"
+  inoremap <silent><nowait><expr> <C-b> coc#float#has_scroll() ? "\<c-r>=coc#float#scroll(0)\<cr>" : "\<Left>"
+  vnoremap <silent><nowait><expr> <C-f> coc#float#has_scroll() ? coc#float#scroll(1) : "\<C-f>"
+  vnoremap <silent><nowait><expr> <C-b> coc#float#has_scroll() ? coc#float#scroll(0) : "\<C-b>"
+endif
+
+" Add `:Format` command to format current buffer
+command! -nargs=0 Format :call CocActionAsync('format')
+" Add `:OR` command for organize imports of the current buffer
+command! -nargs=0 OR   :call     CocActionAsync('runCommand', 'editor.action.organizeImport')
+
+
+""================================
+"           YCM
+"================================
+"let g:ycm_enable_semantic_highlighting = 1
+"let g:ycm_enable_inlay_hints = 1
+""let g:ycm_global_ycm_extra_conf = "~/.ycm_extra_conf.py"
+"let g:ycm_complete_in_strings = 1
+"let g:ycm_autoclose_preview_window_after_insertion = 1
+"let g:ycm_autoclose_preview_window_after_completion = 1
+"let g:ycm_key_list_stop_completion = ['<C-y>']
+"let g:ycm_show_detailed_diag_in_popup = 1
+"let g:ycm_key_detailed_diagnostics = '<leader>d'
+"let g:ycm_auto_hover = ''
+"let g:ycm_enable_diagnostic_signs = 0
+
+"hi link YcmInlayHint Comment
+
+"autocmd BufRead * let b:ycm_hover = {
+            "\ 'command': 'GetDoc',
+            "\ 'syntax': &filetype
+            "\ }
+
+"nnoremap <silent> <leader>h <Plug>(YCMToggleInlayHints)
+"nnoremap <silent> <leader>ss <Plug>(YCMFindSymbolInWorkspace)
+"nnoremap <silent> <leader>gd :YcmCompleter GoTo<CR>
+"nnoremap <silent> <leader>gti :YcmCompleter GoToInclude<CR>
+"nnoremap <silent> <leader>gr :YcmCompleter GoToReferences<CR>
+"nnoremap <silent> <leader>gi :YcmCompleter GoToImplementation<CR>
+"nnoremap <silent> <leader>gc :YcmCompleter GoToCallers<CR>
+"nnoremap <silent> M <Plug>(YCMHover)
+
+
+"nerdtree
+nnoremap <silent> <leader>e :NERDTreeToggle<CR>
+nnoremap <silent> <leader>r :NERDTreeFind<CR>
+"
+" Exit Vim if NERDTree is the only window remaining in the only tab.
+autocmd BufEnter * if tabpagenr('$') == 1 && winnr('$') == 1 && exists('b:NERDTree') && b:NERDTree.isTabTree() | quit | endif
+"
+" If another buffer tries to replace NERDTree, put it in the other window, and bring back NERDTree.
+autocmd BufEnter * if bufname('#') =~ 'NERD_tree_\d\+' && bufname('%') !~ 'NERD_tree_\d\+' && winnr('$') > 1 |
+            \ let buf=bufnr() | buffer# | execute "normal! \<C-W>w" | execute 'buffer'.buf | endif
+"
+" Open the existing NERDTree on each new tab.
+"autocmd BufWinEnter * if getcmdwintype() == '' | silent NERDTreeMirror | endif
+
+
+"vim-floaterm
+nnoremap <silent> <leader>ft :FloatermToggle<CR>
+nnoremap <silent> <leader>fn :FloatermNext<CR>
+nnoremap <silent> <leader>fp :FloatermPrev<CR>
+"toggole floaterm in terminal mode
+tnoremap <silent> <leader>ft <C-\><C-n>:FloatermToggle<CR>
+tnoremap <silent> <leader>fk <C-\><C-n>:FloatermKill<CR>
+
+"cpp-enhanced-highlight
+let g:cpp_concepts_highlight = 1
