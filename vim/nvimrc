@@ -87,7 +87,8 @@ autocmd FileType sql setlocal shiftwidth=2 tabstop=2 expandtab
 autocmd BufNewFile *.sh,*.cpp,*.c,*.rs,*.java,*.py,*.h,*.hpp call SetHeader()
 
 autocmd FileType rust let b:AutoPairs = AutoPairsDefine({'\S<':'>', '&\zs''': ''})
-autocmd FileType cpp let b:AutoPairs = AutoPairsDefine({'[a-z]<':'>', 'template <':'>'})
+autocmd FileType cpp let b:AutoPairs = AutoPairsDefine({'\S<':'>', 'template <':'>', 'include <': '>', '\S <': '', '\S <<': ''})
+autocmd FileType java let b:AutoPairs = AutoPairsDefine({'\S<':'>', '\S <': ''})
 
 function! SetHeader()
   let extension = expand('%:e')
@@ -101,7 +102,7 @@ function! SetHeader()
   call append(line('.')+2, '')
 
   if extension == 'h' || extension == 'hpp'
-    let basename = '_'.toupper(expand('%:t:r')).'_'
+    let basename = '_'.toupper(expand('%:t:r')).'_'.toupper(extension)
     call append(line('$'), '#ifndef '.basename)
     call append(line('$'), '#define '.basename)
     call append(line('$'), '')
@@ -335,3 +336,36 @@ tnoremap <silent> <leader>fk <C-\><C-n>:FloatermKill<CR>
 
 "cpp-enhanced-highlight
 let g:cpp_concepts_highlight = 1
+
+" don't indent namespace and template in C/C++ files
+" Don't indent namespace and template
+function! CppNoNamespaceAndTemplateIndent()
+    let l:cline_num = line('.')
+    let l:cline = getline(l:cline_num)
+    let l:pline_num = prevnonblank(l:cline_num - 1)
+    let l:pline = getline(l:pline_num)
+    while l:pline =~# '\(^\s*{\s*\|^\s*//\|^\s*/\*\|\*/\s*$\)'
+        let l:pline_num = prevnonblank(l:pline_num - 1)
+        let l:pline = getline(l:pline_num)
+    endwhile
+    let l:retv = cindent('.')
+    let l:pindent = indent(l:pline_num)
+    if l:pline =~# '^\s*template\s*\s*$'
+        let l:retv = l:pindent
+    elseif l:pline =~# '\s*typename\s*.*,\s*$'
+        let l:retv = l:pindent
+    elseif l:cline =~# '^\s*>\s*$'
+        let l:retv = l:pindent - &shiftwidth
+    elseif l:pline =~# '\s*typename\s*.*>\s*$'
+        let l:retv = l:pindent - &shiftwidth
+    elseif l:pline =~# '^\s*namespace.*'
+        let l:retv = 0
+    endif
+    return l:retv
+endfunction
+
+if has("autocmd")
+    autocmd BufEnter *.{cc,cxx,cpp,h,hh,hpp,hxx} setlocal indentexpr=CppNoNamespaceAndTemplateIndent()
+endif
+
+autocmd BufEnter *.{cc,cxx,cpp,h,hh,hpp,hxx} setlocal indentexpr=CppNoNamespaceAndTemplateIndent()
