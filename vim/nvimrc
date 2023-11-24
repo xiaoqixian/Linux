@@ -75,13 +75,15 @@ iab #s #include <string>
 
 "auto complete html tags
 "autocmd BufRead *.css *.html :ColorHighlight<CR>
+autocmd BufRead,BufNewFile *.typ setfiletype typst
+
 autocmd FileType html setlocal shiftwidth=2 tabstop=2 expandtab
 autocmd FileType css setlocal shiftwidth=2 tabstop=2 expandtab
 autocmd FileType json setlocal shiftwidth=2 tabstop=2 expandtab
 autocmd FileType vue setlocal shiftwidth=2 tabstop=2 expandtab
 autocmd FileType vim setlocal shiftwidth=2 tabstop=2 expandtab
 autocmd FileType xml setlocal shiftwidth=2 tabstop=2 expandtab
-autocmd FileType sql setlocal shiftwidth=2 tabstop=2 expandtab
+autocmd FileType typst setlocal shiftwidth=2 tabstop=2 expandtab
 
 "auto set header for some filetypes
 autocmd BufNewFile *.sh,*.cpp,*.c,*.rs,*.java,*.py,*.h,*.hpp call SetHeader()
@@ -336,8 +338,9 @@ tnoremap <silent> <leader>fk <C-\><C-n>:FloatermKill<CR>
 
 "cpp-enhanced-highlight
 let g:cpp_concepts_highlight = 1
+hi def link cppSTLtype String
+syntax keyword cppSTLtype expected
 
-" don't indent namespace and template in C/C++ files
 " Don't indent namespace and template
 function! CppNoNamespaceAndTemplateIndent()
     let l:cline_num = line('.')
@@ -352,12 +355,12 @@ function! CppNoNamespaceAndTemplateIndent()
     let l:pindent = indent(l:pline_num)
     if l:pline =~# '^\s*template\s*\s*$'
         let l:retv = l:pindent
+    elseif l:pline =~# '^\s*template\s*<.*>\s*$'
+        let l:retv = l:pindent
     elseif l:pline =~# '\s*typename\s*.*,\s*$'
         let l:retv = l:pindent
-    elseif l:cline =~# '^\s*>\s*$'
-        let l:retv = l:pindent - &shiftwidth
-    elseif l:pline =~# '\s*typename\s*.*>\s*$'
-        let l:retv = l:pindent - &shiftwidth
+    elseif l:cline =~# '^.*>\s*$'
+        let l:retv = l:pindent
     elseif l:pline =~# '^\s*namespace.*'
         let l:retv = 0
     endif
