@@ -63,8 +63,6 @@ set mouse=""
 "tab settings
 set expandtab
 set smarttab
-set shiftwidth=4
-set tabstop=4
 
 set completeopt-=preview
 
@@ -77,20 +75,27 @@ iab #s #include <string>
 "autocmd BufRead *.css *.html :ColorHighlight<CR>
 autocmd BufRead,BufNewFile *.typ setfiletype typst
 
-autocmd FileType html setlocal shiftwidth=2 tabstop=2 expandtab
-autocmd FileType css setlocal shiftwidth=2 tabstop=2 expandtab
-autocmd FileType json setlocal shiftwidth=2 tabstop=2 expandtab
-autocmd FileType vue setlocal shiftwidth=2 tabstop=2 expandtab
-autocmd FileType vim setlocal shiftwidth=2 tabstop=2 expandtab
-autocmd FileType xml setlocal shiftwidth=2 tabstop=2 expandtab
-autocmd FileType typst setlocal shiftwidth=2 tabstop=2 expandtab
+func! TabwidthByFile()
+  let l:short_list = ["html", "css", "json", "vue", "vim", "xml", "typst", "bib"]
+
+  if index(l:short_list, &filetype) >= 0
+    setlocal shiftwidth=2 tabstop=2
+  else 
+    setlocal shiftwidth=4 tabstop=4
+  endif
+endfunc
+
+autocmd BufEnter * call TabwidthByFile()
 
 "auto set header for some filetypes
 autocmd BufNewFile *.sh,*.cpp,*.c,*.rs,*.java,*.py,*.h,*.hpp call SetHeader()
+autocmd BufNewFile *.typ call SetTypHeader()
 
+"auto pairs for some filetypes
 autocmd FileType rust let b:AutoPairs = AutoPairsDefine({'\S<':'>', '&\zs''': ''})
 autocmd FileType cpp let b:AutoPairs = AutoPairsDefine({'\S<':'>', 'template <':'>', 'include <': '>', '\S <': '', '\S <<': ''})
 autocmd FileType java let b:AutoPairs = AutoPairsDefine({'\S<':'>', '\S <': ''})
+autocmd FileType markdown,typst let b:AutoPairs = AutoPairsDefine({'$': '$'})
 
 function! SetHeader()
   let extension = expand('%:e')
@@ -116,6 +121,56 @@ function! SetHeader()
     norm! G
   endif
 
+endfunction
+
+function! SetTypHeader()
+  call setline(1, '// Date: '.strftime('%a %b %d %X %Y'))
+  let l:lines = [
+\'// Author: https://github.com/xiaoqixian',
+\'// Mail: lunar_ubuntu@qq.com',
+\'',
+\'#show heading.where(level: 1): it => [',
+\'  #align(center)[',
+\'    #block(inset: (bottom: 20pt))[',
+\'      #set text(20pt)',
+\'      #it',
+\'    ]',
+\'  ]',
+\']',
+\'#show heading.where(level: 2): it => [',
+\'  #block(inset: (bottom: 15pt))[',
+\'    #set text(18pt)',
+\'    #it',
+\'  ]',
+\']',
+\'#show heading.where(level: 3): it => [',
+\'  #block(inset: (bottom: 12pt))[',
+\'    #set text(16pt)',
+\'    #it',
+\'  ]',
+\']',
+\'',
+\'#let mypar(content) = {',
+\'  let elems = ()',
+\'',
+\'  elems.push(h(1em))',
+\'  for i in content.children {',
+\'    elems.push(i)',
+\'    if i.func() == parbreak {',
+\'      elems.push(h(1em))',
+\'    }',
+\'  }',
+\'  return elems.join()',
+\'}',
+\'',
+\'#set text(12pt)',
+\'',
+\'#set list(indent: 20pt)',
+\'']
+  for l:line in l:lines
+    call append(line('.'), l:line)
+    norm! j
+  endfor
 endfunction
 
 "mapping
@@ -176,11 +231,12 @@ vnoremap yy "+y
 	"return !col || getline('.')[col - 1] =~# '\s'
 "endfunction
 
-"inoremap <silent><expr> <TAB> <SID>CheckBackSpace() ? "\<TAB>" : "\<C-n>"
+"inoremap <silent><expr> <TAB> <SID>CheckBackSpace() ? '\<TAB>' : '\<C-n>'
 
 "plugins management
 call plug#begin()
 
+Plug 'preservim/vim-markdown'
 Plug 'vim-python/python-syntax', {'for': 'python'}
 Plug 'uiiaoo/java-syntax.vim', {'for': 'java'}
 Plug 'kaarmu/typst.vim'
@@ -227,6 +283,7 @@ inoremap <silent><expr> <TAB>
 inoremap <expr><S-TAB> coc#pum#visible() ? coc#pum#prev(1) : "\<C-h>"
 
 inoremap <silent><expr> <CR> coc#pum#visible() ? coc#pum#confirm() : "\<C-g>u\<CR>\<c-r>=coc#on_enter()\<CR>"
+"imap <silent><expr> <CR> coc#pum#visible() ? coc#pum#confirm() : "\<CR>"
 
 function! CheckBackSpace() abort
     let col = col('.') - 1
@@ -330,11 +387,15 @@ autocmd BufEnter * if bufname('#') =~ 'NERD_tree_\d\+' && bufname('%') !~ 'NERD_
 
 "vim-floaterm
 nnoremap <silent> <leader>ft :FloatermToggle<CR>
+nnoremap <silent> <leader>ff :FloatermNew --wintype=vsplit<CR>
+nnoremap <silent> <leader>fd :FloatermNew --wintype=split<CR>
 nnoremap <silent> <leader>fn :FloatermNext<CR>
 nnoremap <silent> <leader>fp :FloatermPrev<CR>
 "toggole floaterm in terminal mode
 tnoremap <silent> <leader>ft <C-\><C-n>:FloatermToggle<CR>
 tnoremap <silent> <leader>fk <C-\><C-n>:FloatermKill<CR>
+"scroll window
+tnoremap <leader>a <c-\><c-n>
 
 "cpp-enhanced-highlight
 let g:cpp_concepts_highlight = 1
@@ -367,8 +428,25 @@ function! CppNoNamespaceAndTemplateIndent()
     return l:retv
 endfunction
 
-if has("autocmd")
-    autocmd BufEnter *.{cc,cxx,cpp,h,hh,hpp,hxx} setlocal indentexpr=CppNoNamespaceAndTemplateIndent()
-endif
+function! CustomTypstIndent()
+  let l:cline_num = line('.')
+  let l:cline = getline(l:cline_num)
+  let l:pline_num = prevnonblank(l:cline_num - 1)
+  let l:pline = getline(l:pline_num)
+  let l:pindent = indent(l:pline_num)
+
+  if l:pline =~# '^.*[[({]$'
+    if l:cline =~# '^.*[])}]$'
+      return l:pindent
+    else 
+      return l:pindent + &shiftwidth
+    endif
+  else
+    return l:pindent
+  endif
+
+endfunction
 
 autocmd BufEnter *.{cc,cxx,cpp,h,hh,hpp,hxx} setlocal indentexpr=CppNoNamespaceAndTemplateIndent()
+
+autocmd BufEnter *.typ setlocal indentexpr=CustomTypstIndent()
