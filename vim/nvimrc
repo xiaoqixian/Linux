@@ -24,6 +24,12 @@ hi TabLine ctermfg=255 ctermbg=none cterm=none
 hi! SignColumn ctermbg=none
 
 syntax enable
+syntax sync maxlines=3000
+
+" python highlight options
+"let g:python_highlight_all = 1
+"let g:python_highlight_indent_errors = 0
+"let g:python_highlight_space_errors = 0
 
 let $LANG="en_US.UTF-8"
 
@@ -92,10 +98,13 @@ autocmd BufNewFile *.sh,*.cpp,*.c,*.rs,*.java,*.py,*.h,*.hpp call SetHeader()
 autocmd BufNewFile *.typ call SetTypHeader()
 
 "auto pairs for some filetypes
-autocmd FileType rust let b:AutoPairs = AutoPairsDefine({'\S<':'>', '&\zs''': ''})
-autocmd FileType cpp let b:AutoPairs = AutoPairsDefine({'\S<':'>', 'template <':'>', 'include <': '>', '\S <': '', '\S <<': ''})
+autocmd FileType rust let b:AutoPairs = AutoPairsDefine({'&\zs''': '', '\w\zs<': '>'})
+autocmd FileType cpp let b:AutoPairs = AutoPairsDefine({'\S<':'>', 'template <':'>', 'include <': '>', '\S <': '', '\S <<': '', 'class \w\+\zs {': '};', 'struct \w\+\zs {': '};'})
+autocmd Filetype c let b:AutoPairs = AutoPairsDefine({'class \w\+\zs {': '};', 'struct \w\+\zs {': '};'})
 autocmd FileType java let b:AutoPairs = AutoPairsDefine({'\S<':'>', '\S <': ''})
 autocmd FileType markdown,typst let b:AutoPairs = AutoPairsDefine({'$': '$'})
+
+let g:AutoPairsMultilineClose = 0
 
 function! SetHeader()
   let extension = expand('%:e')
@@ -140,25 +149,28 @@ function! SetTypHeader()
 \'',
 \'#set heading(numbering: "1.")',
 \'#show heading.where(level: 1): it => [',
-\'  #block(inset: (bottom: 12pt))[',
+\'  #block(inset: (bottom: 5pt))[',
 \'    #set text(16pt)',
 \'    #it',
 \'  ]',
 \']',
 \'#show heading.where(level: 2): it => [',
-\'  #block(inset: (bottom: 10pt))[',
+\'  #block(inset: (bottom: 4pt))[',
 \'    #set text(14pt)',
 \'    #it',
 \'  ]',
 \']',
 \'#show heading.where(level: 3): it => [',
-\'  #block(inset: (bottom: 10pt))[',
+\'  #block(inset: (bottom: 3pt))[',
 \'    #set text(13pt)',
 \'    #it',
 \'  ]',
 \']',
 \'',
 \'#let mypar(content) = {',
+\'  if not content.has("children") {',
+\'    return content',
+\'  }',
 \'  let elems = ()',
 \'',
 \'  elems.push(h(1em))',
@@ -171,9 +183,11 @@ function! SetTypHeader()
 \'  return elems.join()',
 \'}',
 \'',
-\'#set text(12pt)',
+\'#set page(numbering: "1/1")',
+\'#set text(12pt, font: ("Times New Roman", "STSong"))',
 \'#set list(indent: 20pt)',
 \'#set enum(indent: 20pt)',
+\'#set math.equation(numbering: "(1)")',
 \'']
   for l:line in l:lines
     call append(line('.'), l:line)
@@ -245,7 +259,7 @@ vnoremap yy "+y
 call plug#begin()
 
 Plug 'preservim/vim-markdown'
-Plug 'vim-python/python-syntax', {'for': 'python'}
+"Plug 'vim-python/python-syntax', {'for': 'python'}
 Plug 'uiiaoo/java-syntax.vim', {'for': 'java'}
 Plug 'kaarmu/typst.vim'
 Plug 'vim-airline/vim-airline'
@@ -402,6 +416,8 @@ nnoremap <silent> <leader>fp :FloatermPrev<CR>
 "toggole floaterm in terminal mode
 tnoremap <silent> <leader>ft <C-\><C-n>:FloatermToggle<CR>
 tnoremap <silent> <leader>fk <C-\><C-n>:FloatermKill<CR>
+tnoremap <silent> <leader>fn <C-\><C-n>:FloatermNext<CR>
+tnoremap <silent> <leader>fp <C-\><C-n>:FloatermPrev<CR>
 "scroll window
 tnoremap <leader>a <c-\><c-n>
 
